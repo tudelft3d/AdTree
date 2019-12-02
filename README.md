@@ -1,8 +1,4 @@
-# AdTree
-Accurate, Detailed, and Automatic Modelling of Laser-Scanned Trees
-
-![](AdTree.jpg)
-<p align="center">3D Trees reconstructed from point clouds</p>
+# AdTree: Accurate, Detailed, and Automatic Modelling of Laser-Scanned Trees
 
 AdTree implements the tree reconstruction method described in the following paper:
 ```
@@ -12,7 +8,10 @@ Remote Sensing. 2019, 11(18), 2074.
 ```
 Please consider citing our paper if you use the code/program (or part of it).
 
-# Planed: textured rendering (both leaves and branches)
+![](AdTree.jpg)
+<p align="center">3D Trees reconstructed from point clouds</p>
+
+# Textured rendering (both leaves and branches) coming soon...
 
 ---
 
