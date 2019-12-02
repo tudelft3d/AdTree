@@ -6,8 +6,8 @@ project(${PROJECT_NAME})
 
 
 add_library(${PROJECT_NAME} STATIC 
-	kdTree.h
-	kdTree.cpp
+        KdTree.h
+        KdTree.cpp
 	PriorityQueue.h
 	PriorityQueue.cpp
 	Vector2D.h

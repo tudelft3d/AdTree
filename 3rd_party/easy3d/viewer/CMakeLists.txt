@@ -79,7 +79,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_easy3d_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_glew_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_glfw_INCLUDE_DIR})
 
-target_link_libraries(${PROJECT_NAME} glew glfw core util fileio tinyfiledialogs)
+find_package(OpenGL REQUIRED)
+target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} glew glfw core util fileio tinyfiledialogs)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE GLEW_STATIC)
 

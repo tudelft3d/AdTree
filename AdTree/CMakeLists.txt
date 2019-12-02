@@ -17,7 +17,6 @@ add_executable(${PROJECT_NAME}
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "AdTree")
 
-set(default_build_type "Release")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_glew_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_glfw_INCLUDE_DIR})
@@ -33,9 +32,9 @@ find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} glew glfw imgui core util fileio viewer tetgen kd_tree cminpack optimizer_lm)
 
 
-find_package(boost REQUIRED)
-target_link_libraries(${PROJECT_NAME} ${BOOST_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${boost_headers_DIR})
+find_package(Boost REQUIRED) # It's "Boost", not "BOOST" or "boost". Case matters.
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${Boost_headers_DIR})
 
 
 

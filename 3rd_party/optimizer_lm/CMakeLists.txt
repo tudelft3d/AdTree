@@ -15,3 +15,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_cminpack_INCLUDE_DIR})
+
+target_link_libraries(${PROJECT_NAME} cminpack)

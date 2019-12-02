@@ -606,6 +606,8 @@ void TreeViewer::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, co
     {
         easy3d::vec3 s = points[np];
         easy3d::vec3 t = points[np + 1];
+//        if (easy3d::distance2(s, t) < easy3d::epsilon<float>())
+//            continue;
         double r = radius[np];
 
         //find a vector perpendicular to the direction
