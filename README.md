@@ -26,7 +26,7 @@ Some test tree point clouds are provided in the 'data' folder.
 
 **Note:** When testing on your point clouds, please make sure that:
  - you point cloud represents a single tree (i.e., the tree is segmented out from the background; no ground, no fence...);
- - the tree has an upright orientation (i.e., Z-axis point up).
+ - the tree has an upright orientation (i.e., with Z-axis pointing up).
 
 ---
 
