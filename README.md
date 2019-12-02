@@ -12,9 +12,7 @@ Please consider citing our paper if you use the code/program (or part of it).
 ![](AdTree.jpg)
 <p align="center">3D Trees reconstructed from point clouds</p>
 
-# Textured rendering (both leaves and branches) coming soon...
-
----
+## Textured rendering (both leaves and branches) coming soon ...
 
 ### Build AdTree
 You can also build AdTree from the source code. Use CMake to generate project files for your favorite IDEs.
@@ -41,6 +39,8 @@ This program is free software; you can redistribute it and/or modify it under th
 
 Should you have any questions, comments, or suggestions, please contact us at: liangliang.nan@gmail.com
 
-3D Geoinformation, TU Delft,
-https://3d.bk.tudelft.nl
+3D Geoinformation Research Group, TU Delft,
+
+https://3d.bk.tudelft.nl,
+
 Dec. 1, 2019
