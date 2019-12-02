@@ -15,7 +15,7 @@ Please consider citing our paper if you use the code/program (or part of it).
 ## Textured rendering (both leaves and branches) coming soon ...
 
 ### Build AdTree
-You can also build AdTree from the source code. Use CMake to generate project files for your favorite IDEs.
+You can build AdTree from the source code (tested on Windows and macOS).
 
 **Note:** Build AdTree in **Release** mode (or the reconstruction will be super slow).
 
