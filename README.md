@@ -12,15 +12,12 @@ Please consider citing our paper if you use the code/program (or part of it).
 ![](AdTree.jpg)
 <p align="center">3D Trees reconstructed from point clouds</p>
 
-## Textured rendering (both leaves and branches) coming soon ...
+### Textured rendering (both leaves and branches) coming soon ...
 
-### Build AdTree
-You can also build AdTree from the source code. Use CMake to generate project files for your favorite IDEs.
-  
----
+### Build and Run AdTree
+You can build AdTree from the source code (tested on Windows, macOS, and Linux). 
 
-### Run AdTree
-This demo version provides a user interface with menus. Just clicking on the menus will do the magic :-)
+This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
 
 ---
 
