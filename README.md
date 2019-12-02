@@ -37,7 +37,7 @@ This program is free software; you can redistribute it and/or modify it under th
 
 ---
 
-Should you have any questions, comments, or suggestions, please contact us at: liangliang.nan@gmail.com
+Should you have any questions, comments, or suggestions, please contact us at: liangliang.nan@tudelft.nl
 
 3D Geoinformation Research Group, TU Delft,
 
