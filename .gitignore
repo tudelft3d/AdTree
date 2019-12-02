@@ -1,0 +1,7 @@
+x64
+.vs
+*.user
+*.log
+build
+.DS_Store
+AdTree-build
