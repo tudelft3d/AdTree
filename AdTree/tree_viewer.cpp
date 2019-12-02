@@ -606,8 +606,9 @@ void TreeViewer::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, co
     {
         easy3d::vec3 s = points[np];
         easy3d::vec3 t = points[np + 1];
-//        if (easy3d::distance2(s, t) < easy3d::epsilon<float>())
-//            continue;
+		if (easy3d::distance2(s, t) < easy3d::epsilon<float>()) // in case of duplicated points (tiny cylinder)
+			continue;
+
         double r = radius[np];
 
         //find a vector perpendicular to the direction
@@ -637,10 +638,13 @@ void TreeViewer::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, co
         crosssections.push_back(cs);
     }
 
+	if (crosssections.size() < 2)
+		return;
+
     for (std::size_t nx = 0; nx < crosssections.size() - 1; ++nx) {
         const CrossSection& cs_curr = crosssections[nx];
         const CrossSection& cs_next = crosssections[nx+1];
-        for (std::size_t ny = 0; ny < cs_curr.size(); ++ny) {
+		for (std::size_t ny = 0; ny < cs_curr.size(); ++ny) {
             mesh->add_triangle(cs_curr[ny], cs_curr[(ny+1) % cs_curr.size()], cs_next[ny]);
             mesh->add_triangle(cs_next[ny], cs_curr[(ny+1) % cs_curr.size()], cs_next[(ny+1) % cs_curr.size()]);
         }
