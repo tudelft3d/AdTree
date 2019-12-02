@@ -17,7 +17,7 @@ Please consider citing our paper if you use the code/program (or part of it).
 ### Build AdTree
 You can also build AdTree from the source code. Use CMake to generate project files for your favorite IDEs.
 
-**Note:** Build AdTree in **Release mode** (or the reconstruction will be super slow).
+**Note:** Build AdTree in **Release** mode (or the reconstruction will be super slow).
 
 ---
 
