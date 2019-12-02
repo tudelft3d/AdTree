@@ -959,7 +959,7 @@ namespace easy3d {
             indxc[i] = maxc;
 
             //	check for singular matrix:
-            if (std::abs(result(maxc, maxc)) < epsilon<T>() * 2) {
+            if (std::abs(result(maxc, maxc)) < epsilon<T>()) {
                 std::cerr << "input matrix is singular" << std::endl;
                 return result; // return partial result
             }
@@ -1111,7 +1111,7 @@ namespace easy3d {
             indxc[i] = maxc;
 
             //	check for singular matrix:
-            if (std::abs(amat(maxc, maxc)) < epsilon<T>() * 2)
+            if (std::abs(amat(maxc, maxc)) < epsilon<T>())
                 return false;
 
             //	multiply row by 1/pivot:
@@ -1205,7 +1205,7 @@ namespace easy3d {
             (*rowp)[j] = imax;
 
             //	check for singular matrix:
-            if (std::abs(amat(j, j)) < epsilon<T>() * 2)
+            if (std::abs(amat(j, j)) < epsilon<T>())
                 return false;
 
             //	divide by the pivot element:
@@ -1244,7 +1244,7 @@ namespace easy3d {
                 for (size_t j = ii - 1; j < i; ++j)
                     sum -= alu(i, j) * result[j];
             }
-            else if (std::abs(sum) > epsilon<T>() * 2) {
+            else if (std::abs(sum) > epsilon<T>()) {
                 ii = i + 1;
             }
             result[i] = sum;
@@ -1667,7 +1667,7 @@ namespace easy3d {
     /*----------------------------------------------------------------------------*/
     template <typename T>
     inline Mat3<T> Mat3<T>::rotation(const Vec<3, T> &axis, T angle) {
-        assert(std::abs(axis.length() - 1) < epsilon<T>() * 2);
+        assert(std::abs(axis.length() - 1) < epsilon<T>());
 
         //	cross-product matrix of axis:
         const Mat3<T> cpm(
@@ -1698,7 +1698,7 @@ namespace easy3d {
     template <typename T>
     inline Mat3<T> Mat3<T>::rotation(const Quat<T> &q) {
         // input must be unit quaternion
-        assert(std::abs(q.length() - 1) < epsilon<T>() * 2);
+        assert(std::abs(q.length() - 1) < epsilon<T>());
         const T x = q.x();
         const T y = q.y();
         const T z = q.z();
@@ -1955,7 +1955,7 @@ namespace easy3d {
     /*----------------------------------------------------------------------------*/
     template <typename T>
     inline Mat4<T>::Mat4(const Vec<3, T> &s, const Quat<T> &rot, const Vec<3, T> &t) {
-        assert(std::abs(rot.length() - 1) < epsilon<T>() * 2);
+        assert(std::abs(rot.length() - 1) < epsilon<T>());
 
         //	get rotation matrix from quaternion:
         Mat3<T> r(rot);
@@ -2009,7 +2009,7 @@ namespace easy3d {
     
     template <typename T>
     inline Mat4<T> Mat4<T>::rotation(const Vec<3, T> &axis, T angle) {
-        assert(std::abs(axis.length() - 1) < epsilon<T>() * 2);
+        assert(std::abs(axis.length() - 1) < epsilon<T>());
         return Mat4<T>(Mat3<T>::rotation(axis, angle)); // gen 3x3 rotation matrix as arg to Mat4 constructo
     }
     
@@ -2025,7 +2025,7 @@ namespace easy3d {
     template <typename T>
     inline Mat4<T> Mat4<T>::rotation(const Quat<T> &q) {
         // input must be unit quaternion
-        assert(std::abs(q.length() - 1) < epsilon<T>() * 2);
+        assert(std::abs(q.length() - 1) < epsilon<T>());
         const T x = q.x();
         const T y = q.y();
         const T z = q.z();

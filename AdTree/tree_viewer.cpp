@@ -65,7 +65,7 @@ TreeViewer::TreeViewer()
 
     shadow_ = new SoftShadow(camera());
     shadow_->set_sample_pattern(SoftShadow::SamplePattern(2));
-    shadow_->set_darkness(0.1f);
+    shadow_->set_darkness(0.3f);
     shadow_->set_softness(0.9f);
     shadow_->set_background_color(background_color_);
 
