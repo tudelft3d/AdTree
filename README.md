@@ -1,4 +1,4 @@
-AdTree implements the tree reconstruction method described in the following paper:
+AdTree implements the tree reconstruction method described in the following [paper](https://3d.bk.tudelft.nl/liangliang/publications/2019/adtree/AdTree_RS-2019.pdf):
 ```
 Shenglan Du, Roderik Lindenbergh, Hugo Ledoux, Jantien Stoter, and Liangliang Nan.
 AdTree: Accurate, Detailed, and Automatic Modelling of Laser-Scanned Trees.
