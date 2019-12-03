@@ -1,6 +1,3 @@
-# AdTree
-Accurate, Detailed, and Automatic Modelling of Laser-Scanned Trees
-
 AdTree implements the tree reconstruction method described in the following paper:
 ```
 Shenglan Du, Roderik Lindenbergh, Hugo Ledoux, Jantien Stoter, and Liangliang Nan.
