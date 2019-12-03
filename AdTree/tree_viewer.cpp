@@ -429,6 +429,9 @@ bool TreeViewer::reconstruct_skeleton() {
         return false;
     }
 
+    if (cloud())
+        cloud()->set_visible(false);
+
     return true;
 }
 

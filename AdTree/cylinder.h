@@ -1,5 +1,5 @@
-#ifndef _ADTREE_CYLINDER_H_
-#define _ADTREE_CYLINDER_H_
+#ifndef ADTREE_CYLINDER_H
+#define ADTREE_CYLINDER_H
 
 /*
 *	Copyright (C) 2019 by
