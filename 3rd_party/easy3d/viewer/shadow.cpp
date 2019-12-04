@@ -145,6 +145,9 @@ namespace easy3d {
 
     void Shadow::draw(const std::vector<TrianglesDrawable*>& surfaces)
     {
+        if (surfaces.empty())
+            return;
+
         int viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);
         int w = viewport[2];

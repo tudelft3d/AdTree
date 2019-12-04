@@ -131,10 +131,8 @@ bool TreeViewer::key_press_event(int key, int modifiers)
         easy3d::LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
         if (!graph_drawable)
             create_skeleton_drawable(ST_SIMPLIFIED);
-        if (graph_drawable) {
-            bool currentVisible = graph_drawable->is_visible();
-            graph_drawable->set_visible(!currentVisible);
-        }
+        if (graph_drawable)
+            graph_drawable->set_visible(!graph_drawable->is_visible());
 		return true;
 	}
 
@@ -268,16 +266,16 @@ void TreeViewer::draw() {
         }
     }
 
+    std::vector<TrianglesDrawable*> surfaces;
     if (branches() && branches()->is_visible()) {
-        std::vector<TrianglesDrawable*> surfaces;
-        for (auto m : models_) {
-            if (m->is_visible()) {
-            for (auto d : m->triangles_drawables())
-                surfaces.push_back(d);
-            }
-        }
-        shadow_->draw(surfaces);
+        for (auto d : branches()->triangles_drawables())
+            surfaces.push_back(d);
     }
+    if (leaves() && leaves()->is_visible()) {
+        for (auto d : leaves()->triangles_drawables())
+            surfaces.push_back(d);
+    }
+    shadow_->draw(surfaces);
 }
 
 
