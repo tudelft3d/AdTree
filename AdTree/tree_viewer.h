@@ -1,5 +1,5 @@
-#ifndef _ADTREE_TREE_VIEWER_H_
-#define _ADTREE_TREE_VIEWER_H_
+#ifndef ADTREE_TREE_VIEWER_H
+#define ADTREE_TREE_VIEWER_H
 
 /*
 *	Copyright (C) 2019 by
@@ -74,7 +74,7 @@ protected:
 	enum SkeletonType {
 		ST_DELAUNAY,
 		ST_MST,
-		ST_SIMPLIFIED
+        ST_SIMPLIFIED
 	};
     bool create_skeleton_drawable(SkeletonType type);
 

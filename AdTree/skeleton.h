@@ -198,7 +198,7 @@ public:
 	/*-------------------------------------------------------------*/
     inline Graph* get_delaunay() { return Delaunay_; }
     inline Graph* get_mst() { return MST_; }
-    inline Graph* get_fine_skeleton() { return FineGraph_; }
+    inline Graph* get_simplified_skeleton() { return simplified_skeleton_; }
     inline std::vector<Leaf> get_leaves() { return VecLeaves_; }
 
 
@@ -210,7 +210,7 @@ private:
 	/*store initial and fine skeleton*/
 	Graph*  Delaunay_;
 	Graph*  MST_;
-	Graph*  FineGraph_;
+    Graph*  simplified_skeleton_;
 
 	/*store leaves*/
 	std::vector<Leaf> VecLeaves_;

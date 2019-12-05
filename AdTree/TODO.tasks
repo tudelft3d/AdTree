@@ -1,0 +1,10 @@
+- Suggest downsampling point clouds for better efficiency (in the readme).
+- Show the smooth skeleton
+- Allow users to output the smooth skeleton
+- Move TreeViewer::reconstruct_skeleton() and TreeViewer::add_leaves() to class Skeleton, both returning a SurfaceMesh.
+- Save the smoothed branches (with name smoothed_skeleton_) as a graph, like simplified_skeleton_;
+- Merge smooth_branches() and extract_branch_surface() with parameter
+  	enum BranchType {
+		BT_SIMPLIFIED,
+		ST_SMOOTHED
+	};

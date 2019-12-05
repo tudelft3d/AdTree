@@ -50,6 +50,8 @@
 #include <fstream>
 
 
+#define VISUALIZE_DRAWABLE_SMOOTHED_SKELETON
+
 
 using namespace easy3d;
 
@@ -136,6 +138,22 @@ bool TreeViewer::key_press_event(int key, int modifiers)
 		return true;
 	}
 
+#ifdef VISUALIZE_DRAWABLE_SMOOTHED_SKELETON
+    else if (key == GLFW_KEY_H && modifiers == GLFW_MOD_SHIFT) {
+        if (!cloud())
+            return false;
+
+        //shift the visibility of the graph drawable
+        easy3d::LinesDrawable* skeleton_drawable = cloud()->lines_drawable("skeleton");
+        if (skeleton_drawable) {
+            skeleton_drawable->set_visible(!skeleton_drawable->is_visible());
+            return true;
+        }
+        else
+            return false;
+    }
+#endif
+
 	else if (key == GLFW_KEY_B && modifiers == GLFW_MOD_SHIFT)
 	{
         if (!branches())
@@ -159,9 +177,13 @@ bool TreeViewer::key_press_event(int key, int modifiers)
 
 std::string TreeViewer::usage() const {
     return Viewer::usage() + std::string(
-        "  Shift + P:       Show/Hide point cloud							\n"
-        "  Shift + B:       Show/Hide branches                              \n"
-        "  Shift + L:       Show/Hide leaves                                \n"
+                "  Shift + P:       Show/Hide point cloud							\n"
+                "  Shift + G:       Show/Hide graph (Delaunay/MST/Simplified)       \n"
+#ifdef VISUALIZE_DRAWABLE_SMOOTHED_SKELETON
+                "  Shift + H:       Show/Hide final skeleton                        \n"
+#endif
+                "  Shift + B:       Show/Hide branches                              \n"
+                "  Shift + L:       Show/Hide leaves                                \n"
     );
 }
 
@@ -264,6 +286,27 @@ void TreeViewer::draw() {
                 program->release();
             }
         }
+
+#ifdef VISUALIZE_DRAWABLE_SMOOTHED_SKELETON
+        easy3d::LinesDrawable* skeleton_drawable = cloud()->lines_drawable("skeleton");
+        if (skeleton_drawable && skeleton_drawable->is_visible()) {
+            ShaderProgram* program = ShaderManager::get_program("lines_color");
+            if (!program) {
+                std::vector<ShaderProgram::Attribute> attributes;
+                attributes.push_back(ShaderProgram::Attribute(ShaderProgram::POSITION, "vtx_position"));
+                attributes.push_back(ShaderProgram::Attribute(ShaderProgram::COLOR, "vtx_color"));
+                program = ShaderManager::create_program_from_files("lines_color", attributes);
+            }
+            if (program) {
+                program->bind();
+                program->set_uniform("MVP", MVP);
+                program->set_uniform("per_vertex_color", false);
+                program->set_uniform("default_color", skeleton_drawable->default_color());
+                skeleton_drawable->draw(false);
+                program->release();
+            }
+        }
+#endif
     }
 
     std::vector<TrianglesDrawable*> surfaces;
@@ -291,7 +334,7 @@ bool TreeViewer::create_skeleton_drawable(SkeletonType type)
 	else if (type == ST_MST)
         RenderGraph = skeleton_->get_mst();
 	else if (type == ST_SIMPLIFIED)
-        RenderGraph = skeleton_->get_fine_skeleton();
+        RenderGraph = skeleton_->get_simplified_skeleton();
 	if (!RenderGraph)
 	{
 		std::cout << "fails to render the graph!" << std::endl;
@@ -331,10 +374,10 @@ bool TreeViewer::extract_branch_surface()
         return false;
 
 	//get the branch skeleton to be rendered
-    Graph* branchGraph = skeleton_->get_fine_skeleton();
+    Graph* branchGraph = skeleton_->get_simplified_skeleton();
 	if (!branchGraph)
 	{
-        std::cout << "skeleton doesn not exist!" << std::endl;
+        std::cout << "skeleton does not exist!" << std::endl;
 		return false;
 	}
 
@@ -435,7 +478,7 @@ bool TreeViewer::reconstruct_skeleton() {
 
 
 bool TreeViewer::add_leaves() {
-    if (!skeleton_ || !skeleton_->get_fine_skeleton()) {
+    if (!skeleton_ || !skeleton_->get_simplified_skeleton()) {
         std::cout << "please generate skeleton first!" << std::endl;
         return false;
     }
@@ -492,7 +535,7 @@ bool TreeViewer::add_leaves() {
 bool TreeViewer::smooth_branches()
 {
 	//get the branch skeleton to be rendered
-	Graph* branchGraph = skeleton_->get_fine_skeleton();
+    Graph* branchGraph = skeleton_->get_simplified_skeleton();
 	if (!branchGraph)
 	{
 		std::cout << "skeleton doesn not exist!" << std::endl;
@@ -509,6 +552,14 @@ bool TreeViewer::smooth_branches()
 	// get paths
 	std::vector<Path> pathList;
 	skeleton_->get_graph_for_smooth(pathList);
+
+#ifdef VISUALIZE_DRAWABLE_SMOOTHED_SKELETON
+        //create a line drawable for visualizing the smooth skeleton;
+        easy3d::LinesDrawable* skeleton_drawable = cloud()->lines_drawable("skeleton");
+        if (!skeleton_drawable)
+            skeleton_drawable = cloud()->add_lines_drawable("skeleton");
+        std::vector<easy3d::vec3> skeleton_points;
+#endif
 	
 	// for each path get its coordinates and generate a smooth curve
     for (std::size_t n_path = 0; n_path < pathList.size(); ++n_path)
@@ -547,8 +598,8 @@ bool TreeViewer::smooth_branches()
 				SGraphVertexDescriptor childOfTarget = currentPath[n_node + 2];
 				tangentOfTarget = ((*branchGraph)[childOfTarget].cVert - pSource).normalize();
 			}
-			tangentOfSorce *= 1 * branchlength;
-			tangentOfTarget *= 1 * branchlength;
+            tangentOfSorce *= branchlength;
+            tangentOfTarget *= branchlength;
 
 			//fit hermite curve
 			easy3d::vec3 A = tangentOfTarget + tangentOfSorce + 2 * (pSource - pTarget);
@@ -583,7 +634,23 @@ bool TreeViewer::smooth_branches()
         const int slices = 10;
         add_generalized_cylinder_to_model(mesh, interpolatedRadii, interpolatedPoints, slices);
 
+#ifdef VISUALIZE_DRAWABLE_SMOOTHED_SKELETON
+        for (std::size_t np = 0; np < interpolatedPoints.size() - 1; np++) {
+            easy3d::vec3 s = interpolatedPoints[np];
+            easy3d::vec3 t = interpolatedPoints[np + 1];
+            if (easy3d::distance2(s, t) < easy3d::epsilon<float>() * 10) // in case of duplicated points (tiny cylinder)
+                continue;
+            skeleton_points.push_back(s);
+            skeleton_points.push_back(t);
+        }
+#endif
     }
+
+#ifdef VISUALIZE_DRAWABLE_SMOOTHED_SKELETON
+    skeleton_drawable->update_vertex_buffer(skeleton_points);
+    skeleton_drawable->set_per_vertex_color(false);
+    skeleton_drawable->set_default_color(easy3d::vec3(0.0f, 0.0f, 0.0f));
+#endif
 
 	if (!branches())
 		add_model(mesh);

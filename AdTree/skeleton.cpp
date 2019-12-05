@@ -46,7 +46,7 @@ Skeleton::Skeleton()
     , KDtree_(nullptr)
     , Delaunay_(nullptr)
     , MST_(nullptr)
-    , FineGraph_(nullptr)
+    , simplified_skeleton_(nullptr)
     , quiet_(true)
 {
 	TrunkRadius_ = 0;
@@ -62,8 +62,8 @@ Skeleton::~Skeleton()
 		delete Delaunay_;
 	if (MST_)
 		delete MST_;
-	if (FineGraph_)
-		delete FineGraph_;
+    if (simplified_skeleton_)
+        delete simplified_skeleton_;
 	if (KDtree_)
 		delete KDtree_;
 	if (Points_)
@@ -254,10 +254,10 @@ bool Skeleton::add_leaves()
 void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 {
 	//initialize
-	if (FineGraph_)
-		FineGraph_->clear();
+    if (simplified_skeleton_)
+        simplified_skeleton_->clear();
 	else
-		FineGraph_ = new Graph;
+        simplified_skeleton_ = new Graph;
 
 	//read vertices into the fine graph
 	std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*i_Graph);
@@ -267,7 +267,7 @@ void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 		pV.cVert = (*i_Graph)[*cIter].cVert;
 		pV.nParent = (*i_Graph)[*cIter].nParent;
 		pV.lengthOfSubtree = (*i_Graph)[*cIter].lengthOfSubtree;
-		add_vertex(pV, *FineGraph_);
+        add_vertex(pV, *simplified_skeleton_);
 	}
 
 	//read main edges with sufficient subtree length
@@ -293,7 +293,7 @@ void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 					pEdge.vecPoints = (*i_Graph)[sEdge].vecPoints;
 					SGraphVertexDescriptor dSource = source(sEdge, *i_Graph);
 					SGraphVertexDescriptor dTarget = target(sEdge, *i_Graph);
-					add_edge(dSource, dTarget, pEdge, *FineGraph_);
+                    add_edge(dSource, dTarget, pEdge, *simplified_skeleton_);
 					stack.push_back(*aIter);
 				}
 			}
@@ -303,8 +303,8 @@ void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 	}
 
 	//update the length of subtree and weights for all vertices and edges
-    compute_length_of_subtree(FineGraph_, RootV_);
-    compute_graph_edges_weight(FineGraph_);
+    compute_length_of_subtree(simplified_skeleton_, RootV_);
+    compute_graph_edges_weight(simplified_skeleton_);
     compute_all_edges_radius(TrunkRadius_);
 	return;
 }
@@ -313,7 +313,7 @@ void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 void Skeleton::merge_collapsed_edges()
 {
 	//start checking collapsed edges all over the graph
-	std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*FineGraph_);
+    std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*simplified_skeleton_);
 	bool bChange = true;
 	int numComplex = 0;
 	while (bChange)
@@ -323,20 +323,20 @@ void Skeleton::merge_collapsed_edges()
 		{
 			SGraphVertexDescriptor dVertex = *cIter;
 			//if the current vertex has multiple children vertices
-			if ((out_degree(dVertex, *FineGraph_) > 2) || 
-			(((*FineGraph_)[dVertex].nParent == dVertex) && (out_degree(dVertex, *FineGraph_) > 1))) 
+            if ((out_degree(dVertex, *simplified_skeleton_) > 2) ||
+            (((*simplified_skeleton_)[dVertex].nParent == dVertex) && (out_degree(dVertex, *simplified_skeleton_) > 1)))
 			{
-                if (check_overlap_child_vertex(FineGraph_, dVertex))
+                if (check_overlap_child_vertex(simplified_skeleton_, dVertex))
 				{
 					bChange = true;
 					numComplex++;
 				}
 			}
 			//if the current vertex has only one single child vertex
-			else if ((out_degree(dVertex, *FineGraph_) == 2) && 
-			((*FineGraph_)[dVertex].nParent != dVertex))
+            else if ((out_degree(dVertex, *simplified_skeleton_) == 2) &&
+            ((*simplified_skeleton_)[dVertex].nParent != dVertex))
 			{
-                if (check_single_child_vertex(FineGraph_, dVertex))
+                if (check_single_child_vertex(simplified_skeleton_, dVertex))
 				{
 					bChange = true;
 					numComplex++;
@@ -346,8 +346,8 @@ void Skeleton::merge_collapsed_edges()
 	}
 
 	//update the length of subtree and weights for all vertices and edges
-    compute_length_of_subtree(FineGraph_, RootV_);
-    compute_graph_edges_weight(FineGraph_);
+    compute_length_of_subtree(simplified_skeleton_, RootV_);
+    compute_graph_edges_weight(simplified_skeleton_);
     compute_all_edges_radius(TrunkRadius_);
 	return;
 }
@@ -586,7 +586,7 @@ void Skeleton::compute_length_of_subtree(Graph* i_Graph, SGraphVertexDescriptor 
 			if (i_Graph == MST_)
 				(*i_Graph)[i_dVertex].lengthOfSubtree += child_Length;
 			//for fine graph, a different way is used to compute the length to better represent the radius
-			else if (i_Graph == FineGraph_)
+            else if (i_Graph == simplified_skeleton_)
 			{
 				if ((*i_Graph)[i_dVertex].lengthOfSubtree < child_Length)
 					(*i_Graph)[i_dVertex].lengthOfSubtree = child_Length;
@@ -615,7 +615,7 @@ void Skeleton::compute_all_edges_radius(double trunkRadius)
 {
 	//find the trunk edge
 	SGraphEdgeDescriptor trunkE;
-	std::pair<SGraphOutEdgeIterator, SGraphOutEdgeIterator> listAdj = out_edges(RootV_, (*FineGraph_));
+    std::pair<SGraphOutEdgeIterator, SGraphOutEdgeIterator> listAdj = out_edges(RootV_, (*simplified_skeleton_));
 	for (SGraphOutEdgeIterator eIter = listAdj.first; eIter != listAdj.second; ++eIter)
 	{
 		trunkE = *eIter;
@@ -623,11 +623,11 @@ void Skeleton::compute_all_edges_radius(double trunkRadius)
 	}
 
 	//assign the radius to the rest branches
-	double avrRadius = trunkRadius / pow((*FineGraph_)[trunkE].nWeight, 1.1);
-	std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*FineGraph_);
+    double avrRadius = trunkRadius / pow((*simplified_skeleton_)[trunkE].nWeight, 1.1);
+    std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*simplified_skeleton_);
 	for (SGraphEdgeIterator eIter = ep.first; eIter != ep.second; ++eIter)
 	{
-		(*FineGraph_)[*eIter].nRadius = pow((*FineGraph_)[*eIter].nWeight, 1.1) * avrRadius;
+        (*simplified_skeleton_)[*eIter].nRadius = pow((*simplified_skeleton_)[*eIter].nWeight, 1.1) * avrRadius;
 	}
 
 	return;
@@ -816,26 +816,26 @@ void Skeleton::assign_points_to_edges()
 
 	//for each edge, find its corresponding points
 	SGraphEdgeDescriptor currentE;
-	std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*FineGraph_);
+    std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*simplified_skeleton_);
 	for (SGraphEdgeIterator eIter = ep.first; eIter != ep.second; ++eIter)
 	{
 		//extract two end vertices of the current edge
 		currentE = *eIter;
-		(*FineGraph_)[currentE].vecPoints.clear();
-		double currentR = (*FineGraph_)[currentE].nRadius;
+        (*simplified_skeleton_)[currentE].vecPoints.clear();
+        double currentR = (*simplified_skeleton_)[currentE].nRadius;
 		SGraphVertexDescriptor sourceV, targetV;
-		if (source(currentE, *FineGraph_) == (*FineGraph_)[target(currentE, *FineGraph_)].nParent)
+        if (source(currentE, *simplified_skeleton_) == (*simplified_skeleton_)[target(currentE, *simplified_skeleton_)].nParent)
 		{
-			sourceV = source(currentE, *FineGraph_);
-			targetV = target(currentE, *FineGraph_);
+            sourceV = source(currentE, *simplified_skeleton_);
+            targetV = target(currentE, *simplified_skeleton_);
 		}
 		else
 		{
-			sourceV = target(currentE, *FineGraph_);
-			targetV = source(currentE, *FineGraph_);
+            sourceV = target(currentE, *simplified_skeleton_);
+            targetV = source(currentE, *simplified_skeleton_);
 		}
-		Vector3D pSource((*FineGraph_)[sourceV].cVert.x, (*FineGraph_)[sourceV].cVert.y, (*FineGraph_)[sourceV].cVert.z);
-		Vector3D pTarget((*FineGraph_)[targetV].cVert.x, (*FineGraph_)[targetV].cVert.y, (*FineGraph_)[targetV].cVert.z);
+        Vector3D pSource((*simplified_skeleton_)[sourceV].cVert.x, (*simplified_skeleton_)[sourceV].cVert.y, (*simplified_skeleton_)[sourceV].cVert.z);
+        Vector3D pTarget((*simplified_skeleton_)[targetV].cVert.x, (*simplified_skeleton_)[targetV].cVert.y, (*simplified_skeleton_)[targetV].cVert.z);
 		//query neighbor points from the kd tree
 		KDtree_->queryLineIntersection(pSource, pTarget, 3.0 * currentR, true, true);
 		int neighbourSize = KDtree_->getNOfFoundNeighbours();
@@ -851,7 +851,7 @@ void Skeleton::assign_points_to_edges()
 			double cosAlpha = Vector3D::dotProduct(cDirCylinder, cDirPoint);
 			//if the angle is smaller than 90 and the projection is less than the axis length
 			if (cosAlpha >= 0 && nLengthPoint * cosAlpha <= nLengthCylinder)
-				(*FineGraph_)[currentE].vecPoints.push_back(ptIndex);
+                (*simplified_skeleton_)[currentE].vecPoints.push_back(ptIndex);
 		}
 	}
 
@@ -863,7 +863,7 @@ void Skeleton::fit_trunk()
 {
 	//find the trunk edge
 	SGraphEdgeDescriptor trunkE;
-	std::pair<SGraphOutEdgeIterator, SGraphOutEdgeIterator> listAdj = out_edges(RootV_, (*FineGraph_));
+    std::pair<SGraphOutEdgeIterator, SGraphOutEdgeIterator> listAdj = out_edges(RootV_, (*simplified_skeleton_));
 	for (SGraphOutEdgeIterator eIter = listAdj.first; eIter != listAdj.second; ++eIter)
 	{
 		trunkE = *eIter;
@@ -871,7 +871,7 @@ void Skeleton::fit_trunk()
 	}
 
 	//if the points attached are not enough, then don't conduct fitting
-	std::size_t edgePoints = (*FineGraph_)[trunkE].vecPoints.size();
+    std::size_t edgePoints = (*simplified_skeleton_)[trunkE].vecPoints.size();
 	if (edgePoints <= 20)
 	{
         if (!quiet_)
@@ -881,25 +881,25 @@ void Skeleton::fit_trunk()
 
 	//construct the initial cylinder
 	SGraphVertexDescriptor sourceV, targetV;
-	if (source(trunkE, *FineGraph_) == (*FineGraph_)[target(trunkE, *FineGraph_)].nParent)
+    if (source(trunkE, *simplified_skeleton_) == (*simplified_skeleton_)[target(trunkE, *simplified_skeleton_)].nParent)
 	{
-		sourceV = source(trunkE, *FineGraph_);
-		targetV = target(trunkE, *FineGraph_);
+        sourceV = source(trunkE, *simplified_skeleton_);
+        targetV = target(trunkE, *simplified_skeleton_);
 	}
 	else
 	{
-		sourceV = target(trunkE, *FineGraph_);
-		targetV = source(trunkE, *FineGraph_);
+        sourceV = target(trunkE, *simplified_skeleton_);
+        targetV = source(trunkE, *simplified_skeleton_);
 	}
-	Vector3D pSource((*FineGraph_)[sourceV].cVert.x, (*FineGraph_)[sourceV].cVert.y, (*FineGraph_)[sourceV].cVert.z);
-	Vector3D pTarget((*FineGraph_)[targetV].cVert.x, (*FineGraph_)[targetV].cVert.y, (*FineGraph_)[targetV].cVert.z);
-	Cylinder currentC = Cylinder(pSource, pTarget, (*FineGraph_)[trunkE].nRadius);
+    Vector3D pSource((*simplified_skeleton_)[sourceV].cVert.x, (*simplified_skeleton_)[sourceV].cVert.y, (*simplified_skeleton_)[sourceV].cVert.z);
+    Vector3D pTarget((*simplified_skeleton_)[targetV].cVert.x, (*simplified_skeleton_)[targetV].cVert.y, (*simplified_skeleton_)[targetV].cVert.z);
+    Cylinder currentC = Cylinder(pSource, pTarget, (*simplified_skeleton_)[trunkE].nRadius);
 
 	//extract the corresponding point cloud
 	std::vector<std::vector<double>> ptlist;
 	for (int np = 0; np < edgePoints; np++)
 	{
-		int npIndex = (*FineGraph_)[trunkE].vecPoints.at(np);
+        int npIndex = (*simplified_skeleton_)[trunkE].vecPoints.at(np);
 		Vector3D pt = Points_[npIndex];
 		std::vector<double> ptemp;
 		ptemp.push_back(pt.x);
@@ -960,9 +960,9 @@ void Skeleton::fit_trunk()
 		Vector3D pSourceNew = pSourceAdjust + nLengthSource * alphaSource*axis;
 		Vector3D pTargetNew = pSourceAdjust + nLengthTarget * alphaTarget*axis;
 
-		(*FineGraph_)[sourceV].cVert = easy3d::vec3(pSourceNew.x, pSourceNew.y, pSourceNew.z);
-		(*FineGraph_)[targetV].cVert = easy3d::vec3(pTargetNew.x, pTargetNew.y, pTargetNew.z);
-		(*FineGraph_)[trunkE].nRadius = radiusAdjust;
+        (*simplified_skeleton_)[sourceV].cVert = easy3d::vec3(pSourceNew.x, pSourceNew.y, pSourceNew.z);
+        (*simplified_skeleton_)[targetV].cVert = easy3d::vec3(pTargetNew.x, pTargetNew.y, pTargetNew.z);
+        (*simplified_skeleton_)[trunkE].nRadius = radiusAdjust;
 		TrunkRadius_ = radiusAdjust;
 		return;
 	}
@@ -979,12 +979,12 @@ std::vector<SGraphVertexDescriptor> Skeleton::find_end_vertices()
 {
 	std::vector<SGraphVertexDescriptor> endVertices;
 	// retrieve all leaf vertices at the end of the tree graph
-	std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*FineGraph_);
+    std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*simplified_skeleton_);
 	for (SGraphVertexIterator cIter = vp.first; cIter != vp.second; ++cIter)
 	{
-		if (out_degree(*cIter, *FineGraph_) == 1)
+        if (out_degree(*cIter, *simplified_skeleton_) == 1)
 		{
-			if (*cIter != (*FineGraph_)[*cIter].nParent)
+            if (*cIter != (*simplified_skeleton_)[*cIter].nParent)
 				endVertices.push_back(*cIter);
 		}
 	}
@@ -997,11 +997,11 @@ void Skeleton::generate_leaves(SGraphVertexDescriptor i_LeafVertex, double leafs
 {
 	//generate a random density number
 	int density = ceil(Rand_0_1 * 10);
-	double radius = 0.2 / log((float)num_edges(*FineGraph_));
+    double radius = 0.2 / log((float)num_edges(*simplified_skeleton_));
 	//get the position of the current leaf vertex and its parent
-	easy3d::vec3 pCurrent = (*FineGraph_)[i_LeafVertex].cVert;
-	SGraphVertexDescriptor i_LeafParent = (*FineGraph_)[i_LeafVertex].nParent;
-	easy3d::vec3 pParent = (*FineGraph_)[i_LeafParent].cVert;
+    easy3d::vec3 pCurrent = (*simplified_skeleton_)[i_LeafVertex].cVert;
+    SGraphVertexDescriptor i_LeafParent = (*simplified_skeleton_)[i_LeafVertex].nParent;
+    easy3d::vec3 pParent = (*simplified_skeleton_)[i_LeafParent].cVert;
 	//get the end position where the leaf should grow
 	easy3d::vec3 pEnd = pCurrent - (Rand_0_1 / 2.0) * ((pCurrent - pParent).normalize());
 
@@ -1047,7 +1047,7 @@ void Skeleton::get_graph_for_smooth(std::vector<Path> &pathList)
 		currentPath = pathList[cursor];
 		SGraphVertexDescriptor endV = currentPath.back();
 		// if the current path has reached the leaf
-		if ((out_degree(endV, *FineGraph_) == 1) && (endV != (*FineGraph_)[endV].nParent))
+        if ((out_degree(endV, *simplified_skeleton_) == 1) && (endV != (*simplified_skeleton_)[endV].nParent))
 			cursor++;
 		else
 		{
@@ -1056,13 +1056,13 @@ void Skeleton::get_graph_for_smooth(std::vector<Path> &pathList)
 			int isUsed = -1;
 			SGraphVertexDescriptor fatestChild;
 			std::vector<SGraphVertexDescriptor> notFastestChildren;
-			std::pair<SGraphAdjacencyIterator, SGraphAdjacencyIterator> adjacencies = adjacent_vertices(endV, *FineGraph_);
+            std::pair<SGraphAdjacencyIterator, SGraphAdjacencyIterator> adjacencies = adjacent_vertices(endV, *simplified_skeleton_);
 			for (SGraphAdjacencyIterator cIter = adjacencies.first; cIter != adjacencies.second; ++cIter)
 			{
-				if (*cIter != (*FineGraph_)[endV].nParent)
+                if (*cIter != (*simplified_skeleton_)[endV].nParent)
 				{
-					SGraphEdgeDescriptor currentE = edge(endV, *cIter, *FineGraph_).first;
-					double radius = (*FineGraph_)[currentE].nRadius;
+                    SGraphEdgeDescriptor currentE = edge(endV, *cIter, *simplified_skeleton_).first;
+                    double radius = (*simplified_skeleton_)[currentE].nRadius;
 					if (maxR < radius)
 					{
 						maxR = radius;
