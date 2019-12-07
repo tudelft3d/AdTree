@@ -30,13 +30,13 @@
 #include "cylinder.h"
 
 #include <easy3d/core/point_cloud.h>
+#include <easy3d/core/surface_mesh.h>
+#include <easy3d/core/random.h>
 #include <3rd_party/tetgen/tetgen.h>
 
 #include <iostream>
+#include <algorithm>
 
-
-#define Rand_0_1 (((double) (rand() % 1000)) / 1000)
-#define max(a,b)   (((a) > (b)) ? (a) : (b))
 
 using namespace boost;
 
@@ -44,9 +44,6 @@ using namespace boost;
 Skeleton::Skeleton() 
     : Points_(nullptr)
     , KDtree_(nullptr)
-    , Delaunay_(nullptr)
-    , MST_(nullptr)
-    , simplified_skeleton_(nullptr)
     , quiet_(true)
 {
 	TrunkRadius_ = 0;
@@ -58,12 +55,6 @@ Skeleton::Skeleton()
 
 Skeleton::~Skeleton()
 {
-	if (Delaunay_)
-		delete Delaunay_;
-	if (MST_)
-		delete MST_;
-    if (simplified_skeleton_)
-        delete simplified_skeleton_;
 	if (KDtree_)
 		delete KDtree_;
 	if (Points_)
@@ -73,27 +64,24 @@ Skeleton::~Skeleton()
 }
 
 
-bool Skeleton::build_delaunay(easy3d::PointCloud* cloud)
+bool Skeleton::build_delaunay(const easy3d::PointCloud* cloud)
 {
 	//initialize
-	if (Delaunay_)
-		Delaunay_->clear();
-	else
-		Delaunay_ = new Graph;
+    delaunay_.clear();
 
 	//read vertices into the graph
     if (!quiet_)
         std::cout << "read vertices into the delaunay..." << std::endl;
 	int nPoints = cloud->n_vertices();
 	easy3d::PointCloud::VertexProperty<easy3d::vec3> points = cloud->get_vertex_property<easy3d::vec3>("v:point");
-    std::vector<Vector3D> newVertices = centralize_main_points(cloud);
+    std::vector<Vector3D> newVertices = centralize_main_points(const_cast<easy3d::PointCloud*>(cloud));
 	for (int i = 0; i < nPoints; i++)
 	{
 		SGraphVertexProp pV;
 		pV.cVert = easy3d::vec3(newVertices[i].x, newVertices[i].y, newVertices[i].z);
 		pV.nParent = 0;
 		pV.lengthOfSubtree = 0.0;
-		add_vertex(pV, *Delaunay_);
+        add_vertex(pV, delaunay_);
 	}
 
 	// Generate graph edges
@@ -117,7 +105,7 @@ bool Skeleton::build_delaunay(easy3d::PointCloud* cloud)
 		long tet_first = nTet * tet_out.numberofcorners;
 		for (long i = tet_first; i < tet_first + tet_out.numberofcorners; i++) 
 			for (long j = i + 1; j < tet_first + tet_out.numberofcorners; j++)
-				add_edge(vertex(tet_out.tetrahedronlist[i], *Delaunay_), vertex(tet_out.tetrahedronlist[j], *Delaunay_), *Delaunay_);
+                add_edge(vertex(tet_out.tetrahedronlist[i], delaunay_), vertex(tet_out.tetrahedronlist[j], delaunay_), delaunay_);
 	}
 
 	//compute the weight of each edge
@@ -134,67 +122,64 @@ bool Skeleton::build_delaunay(easy3d::PointCloud* cloud)
 bool Skeleton::extract_mst()
 {
 	//initialize
-	if (MST_)
-		MST_->clear();
-	else
-		MST_ = new Graph;
+    MST_.clear();
 
 	//read vertices into the MST graph
     if (!quiet_)
-        std::cout << "read vertices into the MST graph..." << std::endl;
-	std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*Delaunay_);
+        std::cout << "extracting MST..." << std::endl;
+    std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(delaunay_);
 	for (SGraphVertexIterator cIter = vp.first; cIter != vp.second; ++cIter)
 	{
 		SGraphVertexProp pV;
-		pV.cVert = (*Delaunay_)[*cIter].cVert;
+        pV.cVert = (delaunay_)[*cIter].cVert;
 		pV.nParent = 0;
 		pV.lengthOfSubtree = 0.0;
-		add_vertex(pV, *MST_);
+        add_vertex(pV, MST_);
 	}
 
 	//extract the root vertex
     if (!quiet_)
         std::cout << "get the root vertex..." << std::endl;
-    compute_root_vertex(MST_);
+    compute_root_vertex(&MST_);
 
 	//Find the spanning tree edges with minimum sum distance
     if (!quiet_)
         std::cout << "compute the shortest spanning tree..." << std::endl;
-	std::vector<double> distances(num_vertices(*Delaunay_));
-	std::vector<SGraphVertexDescriptor> vecParent(num_vertices(*Delaunay_));
-	dijkstra_shortest_paths(*Delaunay_, RootV_, weight_map(get(&SGraphEdgeProp::nWeight, *Delaunay_))
+    std::vector<double> distances(num_vertices(delaunay_));
+    std::vector<SGraphVertexDescriptor> vecParent(num_vertices(delaunay_));
+    dijkstra_shortest_paths(delaunay_, RootV_, weight_map(get(&SGraphEdgeProp::nWeight, delaunay_))
 		.distance_map(&distances[0])
 		.predecessor_map(&(vecParent[0])));
 
 	//Read the edges into the MST graph
 	for (unsigned int nP = 0; nP < vecParent.size(); ++nP)
 	{
-		if (vertex(nP, *MST_) != vecParent.at(nP))
+        if (vertex(nP, MST_) != vecParent.at(nP))
 		{
 			SGraphEdgeProp pEdge;
 			pEdge.nWeight = 0.0;
 			pEdge.nRadius = 0.0;
 			pEdge.vecPoints.clear();
-			add_edge(vertex(nP, *MST_), vertex(vecParent.at(nP), *MST_), pEdge, *MST_);
+            add_edge(vertex(nP, MST_), vertex(vecParent.at(nP), MST_), pEdge, MST_);
 		}
-		(*MST_)[vertex(nP, *MST_)].nParent = vecParent.at(nP);
+        MST_[vertex(nP, MST_)].nParent = vecParent.at(nP);
 	}
 
 	//compute the length of subtree and the edges weights
     if (!quiet_)
         std::cout << "compute the subtree length for each vertex..." << std::endl;
-    compute_length_of_subtree(MST_, RootV_);
+    compute_length_of_subtree(&MST_, RootV_);
     if (!quiet_)
         std::cout << "finish the minimum spanning tree extraction!" << std::endl;
 	return true;
 }
 
 
-bool Skeleton::refine_skeleton()
+bool Skeleton::simplify_skeleton()
 {
     if (!quiet_)
         std::cout << "step 1: eliminate unimportant small edges" << std::endl;
-    keep_main_skeleton(MST_, 0.019);
+    keep_main_skeleton(&MST_, 0.019);
 
     if (!quiet_)
         std::cout << "step 2: iteratively merge collapsed edges" << std::endl;
@@ -206,7 +191,126 @@ bool Skeleton::refine_skeleton()
 }
 
 
-bool Skeleton::inflate_branches()
+// internaally a hermite curve with varying radius
+bool Skeleton::smooth_skeleton()
+{
+    if (num_edges(simplified_skeleton_) < 2) {
+        std::cout << "skeleton doesn not exist!" << std::endl;
+        return false;
+    }
+
+    smoothed_skeleton_.clear();
+    if (!quiet_)
+        std::cout << "smoothing skeleton..." << std::endl;
+
+    // get paths
+    std::vector<Path> pathList;
+    get_graph_for_smooth(pathList);
+
+    // for each path get its coordinates and generate a smooth curve
+    for (std::size_t n_path = 0; n_path < pathList.size(); ++n_path)
+    {
+        Path currentPath = pathList[n_path];
+        std::vector<easy3d::vec3> interpolatedPoints;
+        std::vector<double> interpolatedRadii;
+        static int numOfSlices = 20;
+        std::vector<int> numOfSlicesCurrent;
+        // retrieve the current path and its vertices
+        for (std::size_t n_node = 0; n_node < currentPath.size() - 1; ++n_node)
+        {
+            SGraphVertexDescriptor sourceV = currentPath[n_node];
+            SGraphVertexDescriptor targetV = currentPath[n_node + 1];
+            easy3d::vec3 pSource = simplified_skeleton_[sourceV].cVert;
+            easy3d::vec3 pTarget = simplified_skeleton_[targetV].cVert;
+            float branchlength = easy3d::distance(pSource, pTarget);
+            numOfSlicesCurrent.push_back(std::max(static_cast<int>(branchlength * numOfSlices), 2));
+
+            // compute the tangents
+            easy3d::vec3 tangentOfSorce;
+            easy3d::vec3 tangentOfTarget;
+            // if the source vertex is the root
+            if (sourceV == simplified_skeleton_[sourceV].nParent)
+                tangentOfSorce = (pTarget - pSource).normalize();
+            else
+            {
+                SGraphVertexDescriptor parentOfSource = simplified_skeleton_[sourceV].nParent;
+                tangentOfSorce = (pTarget - simplified_skeleton_[parentOfSource].cVert).normalize();
+            }
+            // if the target vertex is leaf
+            if ((out_degree(targetV, simplified_skeleton_) == 1) && (targetV != simplified_skeleton_[targetV].nParent))
+                tangentOfTarget = (pTarget - pSource).normalize();
+            else
+            {
+                SGraphVertexDescriptor childOfTarget = currentPath[n_node + 2];
+                tangentOfTarget = (simplified_skeleton_[childOfTarget].cVert - pSource).normalize();
+            }
+            tangentOfSorce *= branchlength;
+            tangentOfTarget *= branchlength;
+
+            //fit hermite curve
+            easy3d::vec3 A = tangentOfTarget + tangentOfSorce + 2 * (pSource - pTarget);
+            easy3d::vec3 B = 3 * (pTarget - pSource) - 2 * tangentOfSorce - tangentOfTarget;
+            easy3d::vec3 C = tangentOfSorce;
+            easy3d::vec3 D = pSource;
+            SGraphEdgeDescriptor currentE = edge(sourceV, targetV, simplified_skeleton_).first;
+            double sourceRadius = simplified_skeleton_[currentE].nRadius;
+            double targetRadius = sourceRadius;
+            SGraphVertexDescriptor ParentVert = simplified_skeleton_[sourceV].nParent;
+            if (ParentVert != sourceV)
+            {
+                SGraphEdgeDescriptor ParentEdge = edge(ParentVert, sourceV, simplified_skeleton_).first;
+                sourceRadius = simplified_skeleton_[ParentEdge].nRadius;
+            }
+            double deltaOfRadius = (sourceRadius - targetRadius) / numOfSlicesCurrent[numOfSlicesCurrent.size() - 1];
+            //generate interpolated points
+            for (std::size_t n = 0; n < numOfSlicesCurrent[numOfSlicesCurrent.size() - 1]; ++n)
+            {
+                double t = static_cast<double>(static_cast<double>(n) / numOfSlicesCurrent[numOfSlicesCurrent.size() - 1]);
+                easy3d::vec3 point = A * t*t*t + B * t*t + C * t + D;
+
+                if (n == 0) {
+                    interpolatedPoints.push_back(point);
+                    interpolatedRadii.push_back(sourceRadius - n * deltaOfRadius);
+                }
+                else {
+                    const easy3d::vec3& prev = interpolatedPoints.back();
+                    if (easy3d::distance2(prev, point) > easy3d::epsilon<float>() * 10) { // in case of duplicated points (tiny cylinder)
+                        interpolatedPoints.push_back(point);
+                        interpolatedRadii.push_back(sourceRadius - n * deltaOfRadius);
+                    }
+                }
+            }
+        }
+        //push back the last vertex
+        SGraphVertexDescriptor endV = currentPath.back();
+        const easy3d::vec3& prev = interpolatedPoints.back();
+        const easy3d::vec3& point = simplified_skeleton_[endV].cVert;
+        if (easy3d::distance2(prev, point) > easy3d::epsilon<float>() * 10) { // in case of duplicated points (tiny cylinder)
+            interpolatedPoints.push_back(point);
+            interpolatedRadii.push_back(0);
+        }
+
+        // add vertices
+        std::vector<SGraphVertexDescriptor> vertices;
+        for (std::size_t np = 0; np < interpolatedPoints.size(); np++) {
+            SGraphVertexProp vp;
+            vp.cVert = interpolatedPoints[np];
+            vp.radius = interpolatedRadii[np];
+            SGraphVertexDescriptor v = add_vertex(vp, smoothed_skeleton_);
+            vertices.push_back(v);
+        }
+
+        // add edges
+        for (std::size_t np = 0; np < vertices.size() - 1; np++) {
+            add_edge(vertices[np], vertices[np + 1], SGraphEdgeProp(), smoothed_skeleton_);
+        }
+    }
+
+    return true;
+}
+
+
+bool Skeleton::compute_branch_radius()
 {
     if (!quiet_)
         std::cout << "step 1: assign points to corresponding branch edges" << std::endl;
@@ -254,10 +358,7 @@ bool Skeleton::add_leaves()
 void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 {
 	//initialize
-    if (simplified_skeleton_)
-        simplified_skeleton_->clear();
-	else
-        simplified_skeleton_ = new Graph;
+    simplified_skeleton_.clear();
 
 	//read vertices into the fine graph
 	std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*i_Graph);
@@ -267,7 +368,7 @@ void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 		pV.cVert = (*i_Graph)[*cIter].cVert;
 		pV.nParent = (*i_Graph)[*cIter].nParent;
 		pV.lengthOfSubtree = (*i_Graph)[*cIter].lengthOfSubtree;
-        add_vertex(pV, *simplified_skeleton_);
+        add_vertex(pV, simplified_skeleton_);
 	}
 
 	//read main edges with sufficient subtree length
@@ -293,7 +394,7 @@ void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 					pEdge.vecPoints = (*i_Graph)[sEdge].vecPoints;
 					SGraphVertexDescriptor dSource = source(sEdge, *i_Graph);
 					SGraphVertexDescriptor dTarget = target(sEdge, *i_Graph);
-                    add_edge(dSource, dTarget, pEdge, *simplified_skeleton_);
+                    add_edge(dSource, dTarget, pEdge, simplified_skeleton_);
 					stack.push_back(*aIter);
 				}
 			}
@@ -303,8 +404,8 @@ void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 	}
 
 	//update the length of subtree and weights for all vertices and edges
-    compute_length_of_subtree(simplified_skeleton_, RootV_);
-    compute_graph_edges_weight(simplified_skeleton_);
+    compute_length_of_subtree(&simplified_skeleton_, RootV_);
+    compute_graph_edges_weight(&simplified_skeleton_);
     compute_all_edges_radius(TrunkRadius_);
 	return;
 }
@@ -313,7 +414,7 @@ void Skeleton::keep_main_skeleton(Graph *i_Graph, double subtree_Threshold)
 void Skeleton::merge_collapsed_edges()
 {
 	//start checking collapsed edges all over the graph
-    std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*simplified_skeleton_);
+    std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(simplified_skeleton_);
 	bool bChange = true;
 	int numComplex = 0;
 	while (bChange)
@@ -323,20 +424,20 @@ void Skeleton::merge_collapsed_edges()
 		{
 			SGraphVertexDescriptor dVertex = *cIter;
 			//if the current vertex has multiple children vertices
-            if ((out_degree(dVertex, *simplified_skeleton_) > 2) ||
-            (((*simplified_skeleton_)[dVertex].nParent == dVertex) && (out_degree(dVertex, *simplified_skeleton_) > 1)))
+            if ((out_degree(dVertex, simplified_skeleton_) > 2) ||
+            ((simplified_skeleton_[dVertex].nParent == dVertex) && (out_degree(dVertex, simplified_skeleton_) > 1)))
 			{
-                if (check_overlap_child_vertex(simplified_skeleton_, dVertex))
+                if (check_overlap_child_vertex(&simplified_skeleton_, dVertex))
 				{
 					bChange = true;
 					numComplex++;
 				}
 			}
 			//if the current vertex has only one single child vertex
-            else if ((out_degree(dVertex, *simplified_skeleton_) == 2) &&
-            ((*simplified_skeleton_)[dVertex].nParent != dVertex))
+            else if ((out_degree(dVertex, simplified_skeleton_) == 2) &&
+            (simplified_skeleton_[dVertex].nParent != dVertex))
 			{
-                if (check_single_child_vertex(simplified_skeleton_, dVertex))
+                if (check_single_child_vertex(&simplified_skeleton_, dVertex))
 				{
 					bChange = true;
 					numComplex++;
@@ -346,8 +447,8 @@ void Skeleton::merge_collapsed_edges()
 	}
 
 	//update the length of subtree and weights for all vertices and edges
-    compute_length_of_subtree(simplified_skeleton_, RootV_);
-    compute_graph_edges_weight(simplified_skeleton_);
+    compute_length_of_subtree(&simplified_skeleton_, RootV_);
+    compute_graph_edges_weight(&simplified_skeleton_);
     compute_all_edges_radius(TrunkRadius_);
 	return;
 }
@@ -476,7 +577,7 @@ bool Skeleton::merge_vertices(Graph* i_Graph, SGraphVertexDescriptor i_dSource, 
 		{
 			double sourceRadius = (*i_Graph)[edge(*cIter, i_dSource, *i_Graph).first].nRadius;
 			double targetRadius = (*i_Graph)[edge(*cIter, i_dTarget, *i_Graph).first].nRadius;
-			mapRadius = max(sourceRadius, targetRadius);
+            mapRadius = std::max(sourceRadius, targetRadius);
 		}
 		//if the current vertex is connected only to the targetV
 		else if (edge(*cIter, i_dTarget, *i_Graph).second)
@@ -501,7 +602,7 @@ bool Skeleton::merge_vertices(Graph* i_Graph, SGraphVertexDescriptor i_dSource, 
 	pNew = i_wSource*pSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget*pTarget*(*i_Graph)[i_dTarget].lengthOfSubtree;
 	pNew = pNew / (i_wSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget*(*i_Graph)[i_dTarget].lengthOfSubtree);
 	pV.cVert = pNew;
-	pV.lengthOfSubtree = max((*i_Graph)[i_dSource].lengthOfSubtree, (*i_Graph)[i_dTarget].lengthOfSubtree);
+    pV.lengthOfSubtree = std::max((*i_Graph)[i_dSource].lengthOfSubtree, (*i_Graph)[i_dTarget].lengthOfSubtree);
 
 	// remove old vertices from cGraph
 	clear_vertex(i_dSource, *i_Graph);
@@ -530,16 +631,16 @@ bool Skeleton::merge_vertices(Graph* i_Graph, SGraphVertexDescriptor i_dSource, 
 void Skeleton::compute_delaunay_weight()
 {
 	//set the weight as the length of the edge 
-	std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*Delaunay_);
+    std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(delaunay_);
 	SGraphVertexDescriptor dVertex1, dVertex2;
 	easy3d::vec3 pVertex1, pVertex2;
 	for (SGraphEdgeIterator cIter = ep.first; cIter != ep.second; ++cIter)
 	{
-		dVertex1 = source(*cIter, *Delaunay_);
-		dVertex2 = target(*cIter, *Delaunay_);
-		pVertex1 = (*Delaunay_)[dVertex1].cVert;
-		pVertex2 = (*Delaunay_)[dVertex2].cVert;
-		(*Delaunay_)[*cIter].nWeight = pVertex2.distance2(pVertex1);
+        dVertex1 = source(*cIter, delaunay_);
+        dVertex2 = target(*cIter, delaunay_);
+        pVertex1 = (delaunay_)[dVertex1].cVert;
+        pVertex2 = (delaunay_)[dVertex2].cVert;
+        (delaunay_)[*cIter].nWeight = pVertex2.distance2(pVertex1);
 	}
 	return;
 }
@@ -583,10 +684,10 @@ void Skeleton::compute_length_of_subtree(Graph* i_Graph, SGraphVertexDescriptor 
 			easy3d::vec3 pCurrent = (*i_Graph)[i_dVertex].cVert;
 			double distance = std::sqrt(pCurrent.distance2(pChild));
 			double child_Length = (*i_Graph)[*cIter].lengthOfSubtree + distance;
-			if (i_Graph == MST_)
+            if (i_Graph == &MST_)
 				(*i_Graph)[i_dVertex].lengthOfSubtree += child_Length;
 			//for fine graph, a different way is used to compute the length to better represent the radius
-            else if (i_Graph == simplified_skeleton_)
+            else if (i_Graph == &simplified_skeleton_)
 			{
 				if ((*i_Graph)[i_dVertex].lengthOfSubtree < child_Length)
 					(*i_Graph)[i_dVertex].lengthOfSubtree = child_Length;
@@ -615,7 +716,7 @@ void Skeleton::compute_all_edges_radius(double trunkRadius)
 {
 	//find the trunk edge
 	SGraphEdgeDescriptor trunkE;
-    std::pair<SGraphOutEdgeIterator, SGraphOutEdgeIterator> listAdj = out_edges(RootV_, (*simplified_skeleton_));
+    std::pair<SGraphOutEdgeIterator, SGraphOutEdgeIterator> listAdj = out_edges(RootV_, simplified_skeleton_);
 	for (SGraphOutEdgeIterator eIter = listAdj.first; eIter != listAdj.second; ++eIter)
 	{
 		trunkE = *eIter;
@@ -623,11 +724,11 @@ void Skeleton::compute_all_edges_radius(double trunkRadius)
 	}
 
 	//assign the radius to the rest branches
-    double avrRadius = trunkRadius / pow((*simplified_skeleton_)[trunkE].nWeight, 1.1);
-    std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*simplified_skeleton_);
+    double avrRadius = trunkRadius / pow(simplified_skeleton_[trunkE].nWeight, 1.1);
+    std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(simplified_skeleton_);
 	for (SGraphEdgeIterator eIter = ep.first; eIter != ep.second; ++eIter)
 	{
-        (*simplified_skeleton_)[*eIter].nRadius = pow((*simplified_skeleton_)[*eIter].nWeight, 1.1) * avrRadius;
+        simplified_skeleton_[*eIter].nRadius = pow(simplified_skeleton_[*eIter].nWeight, 1.1) * avrRadius;
 	}
 
 	return;
@@ -795,7 +896,7 @@ void Skeleton::obtain_initial_radius(easy3d::PointCloud* cloud)
 	}
 
 	//assign the raw radius value and return
-	TrunkRadius_ = max((maxX - minX), (maxY - minY)) / 2.0;
+    TrunkRadius_ = std::max((maxX - minX), (maxY - minY)) / 2.0;
     if (!quiet_)
         std::cout << "the initial radius is:" << std::endl;
     if (!quiet_)
@@ -816,26 +917,26 @@ void Skeleton::assign_points_to_edges()
 
 	//for each edge, find its corresponding points
 	SGraphEdgeDescriptor currentE;
-    std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*simplified_skeleton_);
+    std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(simplified_skeleton_);
 	for (SGraphEdgeIterator eIter = ep.first; eIter != ep.second; ++eIter)
 	{
 		//extract two end vertices of the current edge
 		currentE = *eIter;
-        (*simplified_skeleton_)[currentE].vecPoints.clear();
-        double currentR = (*simplified_skeleton_)[currentE].nRadius;
+        simplified_skeleton_[currentE].vecPoints.clear();
+        double currentR = simplified_skeleton_[currentE].nRadius;
 		SGraphVertexDescriptor sourceV, targetV;
-        if (source(currentE, *simplified_skeleton_) == (*simplified_skeleton_)[target(currentE, *simplified_skeleton_)].nParent)
+        if (source(currentE, simplified_skeleton_) == simplified_skeleton_[target(currentE, simplified_skeleton_)].nParent)
 		{
-            sourceV = source(currentE, *simplified_skeleton_);
-            targetV = target(currentE, *simplified_skeleton_);
+            sourceV = source(currentE, simplified_skeleton_);
+            targetV = target(currentE, simplified_skeleton_);
 		}
 		else
 		{
-            sourceV = target(currentE, *simplified_skeleton_);
-            targetV = source(currentE, *simplified_skeleton_);
+            sourceV = target(currentE, simplified_skeleton_);
+            targetV = source(currentE, simplified_skeleton_);
 		}
-        Vector3D pSource((*simplified_skeleton_)[sourceV].cVert.x, (*simplified_skeleton_)[sourceV].cVert.y, (*simplified_skeleton_)[sourceV].cVert.z);
-        Vector3D pTarget((*simplified_skeleton_)[targetV].cVert.x, (*simplified_skeleton_)[targetV].cVert.y, (*simplified_skeleton_)[targetV].cVert.z);
+        Vector3D pSource(simplified_skeleton_[sourceV].cVert.x, simplified_skeleton_[sourceV].cVert.y, simplified_skeleton_[sourceV].cVert.z);
+        Vector3D pTarget(simplified_skeleton_[targetV].cVert.x, simplified_skeleton_[targetV].cVert.y, simplified_skeleton_[targetV].cVert.z);
 		//query neighbor points from the kd tree
 		KDtree_->queryLineIntersection(pSource, pTarget, 3.0 * currentR, true, true);
 		int neighbourSize = KDtree_->getNOfFoundNeighbours();
@@ -851,7 +952,7 @@ void Skeleton::assign_points_to_edges()
 			double cosAlpha = Vector3D::dotProduct(cDirCylinder, cDirPoint);
 			//if the angle is smaller than 90 and the projection is less than the axis length
 			if (cosAlpha >= 0 && nLengthPoint * cosAlpha <= nLengthCylinder)
-                (*simplified_skeleton_)[currentE].vecPoints.push_back(ptIndex);
+                simplified_skeleton_[currentE].vecPoints.push_back(ptIndex);
 		}
 	}
 
@@ -863,7 +964,7 @@ void Skeleton::fit_trunk()
 {
 	//find the trunk edge
 	SGraphEdgeDescriptor trunkE;
-    std::pair<SGraphOutEdgeIterator, SGraphOutEdgeIterator> listAdj = out_edges(RootV_, (*simplified_skeleton_));
+    std::pair<SGraphOutEdgeIterator, SGraphOutEdgeIterator> listAdj = out_edges(RootV_, simplified_skeleton_);
 	for (SGraphOutEdgeIterator eIter = listAdj.first; eIter != listAdj.second; ++eIter)
 	{
 		trunkE = *eIter;
@@ -871,7 +972,7 @@ void Skeleton::fit_trunk()
 	}
 
 	//if the points attached are not enough, then don't conduct fitting
-    std::size_t edgePoints = (*simplified_skeleton_)[trunkE].vecPoints.size();
+    std::size_t edgePoints = simplified_skeleton_[trunkE].vecPoints.size();
 	if (edgePoints <= 20)
 	{
         if (!quiet_)
@@ -881,25 +982,25 @@ void Skeleton::fit_trunk()
 
 	//construct the initial cylinder
 	SGraphVertexDescriptor sourceV, targetV;
-    if (source(trunkE, *simplified_skeleton_) == (*simplified_skeleton_)[target(trunkE, *simplified_skeleton_)].nParent)
+    if (source(trunkE, simplified_skeleton_) == simplified_skeleton_[target(trunkE, simplified_skeleton_)].nParent)
 	{
-        sourceV = source(trunkE, *simplified_skeleton_);
-        targetV = target(trunkE, *simplified_skeleton_);
+        sourceV = source(trunkE, simplified_skeleton_);
+        targetV = target(trunkE, simplified_skeleton_);
 	}
 	else
 	{
-        sourceV = target(trunkE, *simplified_skeleton_);
-        targetV = source(trunkE, *simplified_skeleton_);
+        sourceV = target(trunkE, simplified_skeleton_);
+        targetV = source(trunkE, simplified_skeleton_);
 	}
-    Vector3D pSource((*simplified_skeleton_)[sourceV].cVert.x, (*simplified_skeleton_)[sourceV].cVert.y, (*simplified_skeleton_)[sourceV].cVert.z);
-    Vector3D pTarget((*simplified_skeleton_)[targetV].cVert.x, (*simplified_skeleton_)[targetV].cVert.y, (*simplified_skeleton_)[targetV].cVert.z);
-    Cylinder currentC = Cylinder(pSource, pTarget, (*simplified_skeleton_)[trunkE].nRadius);
+    Vector3D pSource(simplified_skeleton_[sourceV].cVert.x, simplified_skeleton_[sourceV].cVert.y, simplified_skeleton_[sourceV].cVert.z);
+    Vector3D pTarget(simplified_skeleton_[targetV].cVert.x, simplified_skeleton_[targetV].cVert.y, simplified_skeleton_[targetV].cVert.z);
+    Cylinder currentC = Cylinder(pSource, pTarget, simplified_skeleton_[trunkE].nRadius);
 
 	//extract the corresponding point cloud
 	std::vector<std::vector<double>> ptlist;
 	for (int np = 0; np < edgePoints; np++)
 	{
-        int npIndex = (*simplified_skeleton_)[trunkE].vecPoints.at(np);
+        int npIndex = simplified_skeleton_[trunkE].vecPoints.at(np);
 		Vector3D pt = Points_[npIndex];
 		std::vector<double> ptemp;
 		ptemp.push_back(pt.x);
@@ -960,9 +1061,9 @@ void Skeleton::fit_trunk()
 		Vector3D pSourceNew = pSourceAdjust + nLengthSource * alphaSource*axis;
 		Vector3D pTargetNew = pSourceAdjust + nLengthTarget * alphaTarget*axis;
 
-        (*simplified_skeleton_)[sourceV].cVert = easy3d::vec3(pSourceNew.x, pSourceNew.y, pSourceNew.z);
-        (*simplified_skeleton_)[targetV].cVert = easy3d::vec3(pTargetNew.x, pTargetNew.y, pTargetNew.z);
-        (*simplified_skeleton_)[trunkE].nRadius = radiusAdjust;
+        simplified_skeleton_[sourceV].cVert = easy3d::vec3(pSourceNew.x, pSourceNew.y, pSourceNew.z);
+        simplified_skeleton_[targetV].cVert = easy3d::vec3(pTargetNew.x, pTargetNew.y, pTargetNew.z);
+        simplified_skeleton_[trunkE].nRadius = radiusAdjust;
 		TrunkRadius_ = radiusAdjust;
 		return;
 	}
@@ -979,12 +1080,12 @@ std::vector<SGraphVertexDescriptor> Skeleton::find_end_vertices()
 {
 	std::vector<SGraphVertexDescriptor> endVertices;
 	// retrieve all leaf vertices at the end of the tree graph
-    std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(*simplified_skeleton_);
+    std::pair<SGraphVertexIterator, SGraphVertexIterator> vp = vertices(simplified_skeleton_);
 	for (SGraphVertexIterator cIter = vp.first; cIter != vp.second; ++cIter)
 	{
-        if (out_degree(*cIter, *simplified_skeleton_) == 1)
+        if (out_degree(*cIter, simplified_skeleton_) == 1)
 		{
-            if (*cIter != (*simplified_skeleton_)[*cIter].nParent)
+            if (*cIter != simplified_skeleton_[*cIter].nParent)
 				endVertices.push_back(*cIter);
 		}
 	}
@@ -996,22 +1097,22 @@ std::vector<SGraphVertexDescriptor> Skeleton::find_end_vertices()
 void Skeleton::generate_leaves(SGraphVertexDescriptor i_LeafVertex, double leafsize_Factor)
 {
 	//generate a random density number
-	int density = ceil(Rand_0_1 * 10);
-    double radius = 0.2 / log((float)num_edges(*simplified_skeleton_));
+    int density = ceil(easy3d::random_float() * 10);
+    double radius = 0.2 / log((float)num_edges(simplified_skeleton_));
 	//get the position of the current leaf vertex and its parent
-    easy3d::vec3 pCurrent = (*simplified_skeleton_)[i_LeafVertex].cVert;
-    SGraphVertexDescriptor i_LeafParent = (*simplified_skeleton_)[i_LeafVertex].nParent;
-    easy3d::vec3 pParent = (*simplified_skeleton_)[i_LeafParent].cVert;
+    easy3d::vec3 pCurrent = simplified_skeleton_[i_LeafVertex].cVert;
+    SGraphVertexDescriptor i_LeafParent = simplified_skeleton_[i_LeafVertex].nParent;
+    easy3d::vec3 pParent = simplified_skeleton_[i_LeafParent].cVert;
 	//get the end position where the leaf should grow
-	easy3d::vec3 pEnd = pCurrent - (Rand_0_1 / 2.0) * ((pCurrent - pParent).normalize());
+    easy3d::vec3 pEnd = pCurrent - (easy3d::random_float() / 2.0) * ((pCurrent - pParent).normalize());
 
 	//generate i-th random leaf
 	for (int i = 0; i < density; ++i)
 	{
 		//generate a random leaf position
-		easy3d::vec3 dirLeaf((Rand_0_1 - 0.5) / 0.5, (Rand_0_1 - 0.5) / 0.5, (Rand_0_1 - 0.5) / 0.5);
+        easy3d::vec3 dirLeaf((easy3d::random_float() - 0.5) / 0.5, (easy3d::random_float() - 0.5) / 0.5, (easy3d::random_float() - 0.5) / 0.5);
 		dirLeaf = dirLeaf.normalize();
-		double l = Rand_0_1 * radius;
+        double l = easy3d::random_float() * radius;
 		easy3d::vec3 pLeaf = pEnd + dirLeaf * l;
 		//generate normal and color vector
 		easy3d::vec3 dirParent2Leaf = (pLeaf - pParent).normalize();
@@ -1021,8 +1122,8 @@ void Skeleton::generate_leaves(SGraphVertexDescriptor i_LeafVertex, double leafs
 		newleaf.cPos = pLeaf;
 		newleaf.cDir = dirLeaf;
 		//generate a random normal vector direction
-		easy3d::vec3 delta((Rand_0_1 - 0.5) / 0.5, (Rand_0_1 - 0.5) / 0.5, (Rand_0_1 - 0.5) / 0.5);
-		newleaf.cNormal = (normal + Rand_0_1*delta*0.5).normalize();
+        easy3d::vec3 delta((easy3d::random_float() - 0.5) / 0.5, (easy3d::random_float() - 0.5) / 0.5, (easy3d::random_float() - 0.5) / 0.5);
+        newleaf.cNormal = (normal + easy3d::random_float()*delta*0.5).normalize();
 		newleaf.pSource = i_LeafVertex;
 		newleaf.nLength = BoundingDistance_ * leafsize_Factor;
 		newleaf.nRad = newleaf.nLength / 5;
@@ -1047,7 +1148,7 @@ void Skeleton::get_graph_for_smooth(std::vector<Path> &pathList)
 		currentPath = pathList[cursor];
 		SGraphVertexDescriptor endV = currentPath.back();
 		// if the current path has reached the leaf
-        if ((out_degree(endV, *simplified_skeleton_) == 1) && (endV != (*simplified_skeleton_)[endV].nParent))
+        if ((out_degree(endV, simplified_skeleton_) == 1) && (endV != simplified_skeleton_[endV].nParent))
 			cursor++;
 		else
 		{
@@ -1056,13 +1157,13 @@ void Skeleton::get_graph_for_smooth(std::vector<Path> &pathList)
 			int isUsed = -1;
 			SGraphVertexDescriptor fatestChild;
 			std::vector<SGraphVertexDescriptor> notFastestChildren;
-            std::pair<SGraphAdjacencyIterator, SGraphAdjacencyIterator> adjacencies = adjacent_vertices(endV, *simplified_skeleton_);
+            std::pair<SGraphAdjacencyIterator, SGraphAdjacencyIterator> adjacencies = adjacent_vertices(endV, simplified_skeleton_);
 			for (SGraphAdjacencyIterator cIter = adjacencies.first; cIter != adjacencies.second; ++cIter)
 			{
-                if (*cIter != (*simplified_skeleton_)[endV].nParent)
+                if (*cIter != simplified_skeleton_[endV].nParent)
 				{
-                    SGraphEdgeDescriptor currentE = edge(endV, *cIter, *simplified_skeleton_).first;
-                    double radius = (*simplified_skeleton_)[currentE].nRadius;
+                    SGraphEdgeDescriptor currentE = edge(endV, *cIter, simplified_skeleton_).first;
+                    double radius = simplified_skeleton_[currentE].nRadius;
 					if (maxR < radius)
 					{
 						maxR = radius;
@@ -1093,3 +1194,220 @@ void Skeleton::get_graph_for_smooth(std::vector<Path> &pathList)
 }
 
 
+bool Skeleton::reconstruct_branches(const easy3d::PointCloud* cloud, easy3d::SurfaceMesh* mesh) {
+    if (!cloud) {
+        std::cout << "point cloud does not exist" << std::endl;
+        return false;
+    }
+
+    if (!build_delaunay(cloud)) {
+        std::cerr << "failed Delaunay Triangulation" << std::endl;
+        return false;
+    }
+
+    //extract the minimum spanning tree
+    if (!extract_mst()) {
+        std::cerr << "failed extracting MST" << std::endl;
+        return false;
+    }
+
+    //simplify the tree skeleton
+    if (!simplify_skeleton()) {
+        std::cerr << "failed skeleton simplification" << std::endl;
+        return false;
+    }
+
+    //generate branches
+    if (!compute_branch_radius()) {
+        std::cerr << "failed computing branch radius" << std::endl;
+        return false;
+    }
+
+    //smooth branches
+    if (!smooth_skeleton()) {
+        std::cerr << "failed smoothing branches" << std::endl;
+        return false;
+    }
+
+    //extract surface model
+    if (!extract_branch_surfaces(mesh)) {
+        std::cerr << "failed extracting branches" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+
+std::vector<Skeleton::Branch> Skeleton::get_branches_parameters() const {
+    std::vector<Skeleton::Branch> branches;
+
+    Graph& graph = *(const_cast<Graph*>(&smoothed_skeleton_));
+
+    if (boost::num_edges(smoothed_skeleton_) == 0)
+        return branches;
+
+    //-----------------------------------------------------------------------
+    //  traverse all the vertices of a graph
+    //-----------------------------------------------------------------------
+    std::pair<SGraphVertexIterator, SGraphVertexIterator> vi = boost::vertices(graph);
+    for (SGraphVertexIterator vit = vi.first; vit != vi.second; ++vit) {
+        SGraphVertexDescriptor cur_vd = *vit;
+        SGraphVertexProp& vp = graph[cur_vd];
+        vp.visited = false;
+    }
+
+    for (SGraphVertexIterator vit = vi.first; vit != vi.second; ++vit) {
+        SGraphVertexDescriptor cur_vd = *vit;
+        SGraphVertexProp& vp = graph[cur_vd];
+        if (vp.visited)
+            continue;
+        auto deg = boost::degree(cur_vd, graph);
+        if (deg != 1)
+            continue;
+
+        Branch branch;
+
+         vp.visited = true;
+         branch.points.push_back(vp.cVert);
+         branch.radii.push_back(vp.radius);
+
+         bool reached_end = false;
+         do {
+             std::pair<SGraphAdjacencyIterator, SGraphAdjacencyIterator> adj_v_iter = boost::adjacent_vertices(cur_vd, smoothed_skeleton_);
+             for (SGraphAdjacencyIterator ait = adj_v_iter.first; ait != adj_v_iter.second; ++ait) {
+                 SGraphVertexDescriptor next_vd = *ait;
+
+                 SGraphVertexProp& next_vp = graph[next_vd];
+                 if (!next_vp.visited) {
+                     branch.points.push_back(next_vp.cVert);
+                     branch.radii.push_back(next_vp.radius);
+
+                     cur_vd = next_vd;
+                     next_vp.visited = true;
+
+                     if (boost::degree(cur_vd, graph) == 1) {
+                         reached_end = true;
+                         break;
+                     }
+                 }
+             }
+         } while (!reached_end);
+
+         branches.push_back(branch);
+    }
+
+    return branches;
+}
+
+void Skeleton::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, const Branch& branch, int slices)
+{
+    const std::vector<double> &radius = branch.radii;
+    const std::vector<easy3d::vec3> &points = branch.points;
+    if (points.size() < 2) {
+        std::cerr << "two few points to represent a generalized cylinder" << std::endl;
+        return;
+    }
+
+    typedef  std::vector<easy3d::SurfaceMesh::Vertex> CrossSection;
+    std::vector< CrossSection > crosssections;
+    easy3d::vec3 perp;
+    for (std::size_t np = 0; np < points.size() - 1; np++)
+    {
+        easy3d::vec3 s = points[np];
+        easy3d::vec3 t = points[np + 1];
+        double r = radius[np];
+
+        //find a vector perpendicular to the direction
+        const easy3d::vec3 offset = t - s;
+        const easy3d::vec3 axis = easy3d::normalize(offset);
+        if (np == 0) {
+            easy3d::vec3 tmp = orthogonal(axis);
+            tmp.normalize();
+            perp = tmp;
+        }
+        else {
+            const easy3d::vec3 p = easy3d::Plane3(s, axis).projection(s + perp);
+            perp = p - s;
+            perp.normalize();
+        }
+
+        const easy3d::vec3 p = s + perp * r;
+        const double angle_interval = 2.0 * M_PI / slices;
+        //find the points for all slices
+        CrossSection cs;
+        for (int sli = 0; sli < slices; ++sli) {
+            double angle = sli * angle_interval;
+            const easy3d::vec3 a = s + easy3d::mat4::rotation(axis, static_cast<float>(angle)) * (p - s);
+            easy3d::SurfaceMesh::Vertex v = mesh->add_vertex(a);
+            cs.push_back(v);
+        }
+        crosssections.push_back(cs);
+    }
+
+#if 0
+    // the last vertex
+    const easy3d::vec3& t = points.back();
+    easy3d::SurfaceMesh::Vertex v = mesh->add_vertex(t);
+    CrossSection cs;
+    for (int sli = 0; sli < slices; ++sli)
+        cs.push_back(v);
+    crosssections.push_back(cs);
+#endif
+
+    if (crosssections.size() < 2)
+        return;
+
+    for (std::size_t nx = 0; nx < crosssections.size() - 1; ++nx) {
+        const CrossSection& cs_curr = crosssections[nx];
+        const CrossSection& cs_next = crosssections[nx+1];
+        for (std::size_t ny = 0; ny < cs_curr.size(); ++ny) {
+            mesh->add_triangle(cs_curr[ny], cs_curr[(ny+1) % cs_curr.size()], cs_next[ny]);
+            mesh->add_triangle(cs_next[ny], cs_curr[(ny+1) % cs_curr.size()], cs_next[(ny+1) % cs_curr.size()]);
+        }
+    }
+}
+
+
+bool Skeleton::reconstruct_leaves(easy3d::SurfaceMesh *mesh) {
+    if (!add_leaves())
+        return false;
+
+    if (VecLeaves_.empty())
+        return false;
+
+    for (std::size_t i = 0; i < VecLeaves_.size(); i++) {
+        const Leaf& iLeaf = VecLeaves_[i];
+        //compute the center and major axis, minor axis of the leaf quad
+        easy3d::vec3 pCenter((iLeaf.cPos + (0.5 * iLeaf.cDir * iLeaf.nRad)));
+        easy3d::vec3 dirMajor(0.5 * iLeaf.cDir * iLeaf.nLength);
+        easy3d::vec3 dirMinor(0.5 * easy3d::cross(iLeaf.cDir, iLeaf.cNormal)*iLeaf.nRad);
+        //compute the corner coordinates
+        const easy3d::vec3 a = pCenter - dirMajor - dirMinor;
+        const easy3d::vec3 b = pCenter + dirMajor - dirMinor;
+        const easy3d::vec3 c = pCenter + dirMajor + dirMinor;
+        const easy3d::vec3 d = pCenter - dirMajor + dirMinor;
+        easy3d::SurfaceMesh::Vertex va = mesh->add_vertex(a);
+        easy3d::SurfaceMesh::Vertex vb = mesh->add_vertex(b);
+        easy3d::SurfaceMesh::Vertex vc = mesh->add_vertex(c);
+        easy3d::SurfaceMesh::Vertex vd = mesh->add_vertex(d);
+        mesh->add_triangle(va, vb, vc);
+        mesh->add_triangle(va, vc, vd);
+    }
+
+    return true;
+}
+
+
+bool Skeleton::extract_branch_surfaces(easy3d::SurfaceMesh* result)
+{
+    const std::vector<Branch>& branches = get_branches_parameters();
+    if (branches.empty())
+        return false;
+
+    static const int slices = 10;
+    for (const auto& branch : branches)
+        add_generalized_cylinder_to_model(result, branch, slices);
+
+    return true;
+}

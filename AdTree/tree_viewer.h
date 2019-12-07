@@ -67,6 +67,8 @@ protected:
     bool open() override;
     bool save() const override;
 
+    void export_skeleton() const override;
+
     bool reconstruct_skeleton() override;
     bool add_leaves() override;
 
@@ -74,25 +76,10 @@ protected:
 	enum SkeletonType {
 		ST_DELAUNAY,
 		ST_MST,
-        ST_SIMPLIFIED
+        ST_SIMPLIFIED,
+        ST_SMOOTHED
 	};
     bool create_skeleton_drawable(SkeletonType type);
-
-    //extract the branches as a surface mesh
-    bool extract_branch_surface();
-
-    // mesh a cylinder to a surface mesh
-    void add_cylinder_to_model(easy3d::SurfaceMesh* mesh, double radius, int slices, const easy3d::vec3& s, const easy3d::vec3& t);
-
-    // mesh a generalized cylinder to a surface mesh
-    void add_generalized_cylinder_to_model(
-            easy3d::SurfaceMesh* mesh,
-            const std::vector<double>& radius,
-            const std::vector<easy3d::vec3>& points,
-            int slices);
-
-	//smooth branches
-	bool smooth_branches();
 
     easy3d::PointCloud*  cloud() const;
     easy3d::SurfaceMesh* branches() const;

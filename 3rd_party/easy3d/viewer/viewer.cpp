@@ -983,7 +983,7 @@ namespace easy3d {
         else if (dynamic_cast<SurfaceMesh*>(m)) {
             SurfaceMesh* mesh = dynamic_cast<SurfaceMesh*>(m);
             TrianglesDrawable* surface = mesh->add_triangles_drawable("surface");
-#if 0   // flat shading
+#if 1   // flat shading
             auto points = mesh->get_vertex_property<vec3>("v:point");
             auto colors = mesh->get_vertex_property<vec3>("v:color");
 

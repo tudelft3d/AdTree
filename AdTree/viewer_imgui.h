@@ -80,6 +80,8 @@ namespace easy3d {
         void draw_menu_view();
         void draw_menu_reconstruction();
 
+        virtual void export_skeleton() const = 0;
+
         virtual bool reconstruct_skeleton() = 0;
         virtual bool add_leaves() = 0;
 

@@ -1,5 +1,5 @@
-#ifndef _ADTREE_SKELETON_H_
-#define _ADTREE_SKELETON_H_
+#ifndef ADTREE_SKELETON_H
+#define ADTREE_SKELETON_H
 
 /*
 *	Copyright (C) 2019 by
@@ -38,6 +38,7 @@
 
 namespace easy3d {
 	class PointCloud;
+    class SurfaceMesh;
 }
 
 
@@ -47,6 +48,9 @@ struct SGraphVertexProp
 	easy3d::vec3  cVert;
 	std::size_t nParent;
 	double lengthOfSubtree;
+
+    double radius; // used only by the smoothed skeleton
+    bool   visited;
 };
 
 struct SGraphEdgeProp
@@ -90,25 +94,47 @@ public:
 	Skeleton();
 	~Skeleton();
 
+    bool reconstruct_branches(const easy3d::PointCloud* cloud, easy3d::SurfaceMesh* result);
+    bool reconstruct_leaves(easy3d::SurfaceMesh* result);
+
+    /*-------------------------------------------------------------*/
+    /*------------ retrieve the intermediate results --------------*/
+    /*-------------------------------------------------------------*/
+    const Graph& get_delaunay() const { return delaunay_; }
+    const Graph& get_mst() const { return MST_; }
+    const Graph& get_simplified_skeleton() const { return simplified_skeleton_; }
+    const Graph& get_smoothed_skeleton() const { return smoothed_skeleton_; }
+
+    struct Branch {
+        std::vector<easy3d::vec3> points;
+        std::vector<double>       radii;
+    };
+    std::vector<Branch> get_branches_parameters() const;
+
+private:
+
 	/*-------------------------------------------------------------*/
 	/*---------------------pipeline method-------------------------*/
 	/*-------------------------------------------------------------*/
 	//build the initial delaunay graph from input point cloud
-    bool build_delaunay(easy3d::PointCloud* cloud);
+    bool build_delaunay(const easy3d::PointCloud* cloud);
 
 	//extract the minimum spanning tree from delaunay graph
     bool extract_mst();
 
-	//refine the MST to get the fine tree skeleton
-    bool refine_skeleton();
+    //simplify the MST
+    bool simplify_skeleton();
 
-	//fit cylinders to inflate branches
-    bool inflate_branches();
+    //determine branch radius
+    bool compute_branch_radius();
+
+    bool smooth_skeleton();
+
+    //extract branch surfaces
+    bool extract_branch_surfaces(easy3d::SurfaceMesh* result);
 
 	//add random leaves 
     bool add_leaves();
-
-
 
 	/*-------------------------------------------------------------*/
 	/*------method for skeleton refining and simplification--------*/
@@ -193,14 +219,14 @@ public:
 	void get_graph_for_smooth(std::vector<Path> &pathList);
 
 
-	/*-------------------------------------------------------------*/
-	/*---------------------------getter----------------------------*/
-	/*-------------------------------------------------------------*/
-    inline Graph* get_delaunay() { return Delaunay_; }
-    inline Graph* get_mst() { return MST_; }
-    inline Graph* get_simplified_skeleton() { return simplified_skeleton_; }
-    inline std::vector<Leaf> get_leaves() { return VecLeaves_; }
-
+    /*-------------------------------------------------------------*/
+    /*------------ method for surface extraction ------------------*/
+    /*-------------------------------------------------------------*/
+    // mesh a generalized cylinder to a surface mesh
+    void add_generalized_cylinder_to_model(
+            easy3d::SurfaceMesh* mesh,
+            const Branch& points,
+            int slices);
 
 private:
 	/*store points and kd index*/
@@ -208,9 +234,10 @@ private:
 	KdTree* KDtree_;
 
 	/*store initial and fine skeleton*/
-	Graph*  Delaunay_;
-	Graph*  MST_;
-    Graph*  simplified_skeleton_;
+    Graph   delaunay_;
+    Graph   MST_;
+    Graph   simplified_skeleton_;
+    Graph   smoothed_skeleton_;
 
 	/*store leaves*/
 	std::vector<Leaf> VecLeaves_;

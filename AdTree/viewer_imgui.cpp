@@ -238,8 +238,10 @@ namespace easy3d {
         {
             if (ImGui::MenuItem("Open", "Ctrl+O"))
                 open();
-            if (ImGui::MenuItem("Save As...", "Ctrl+S"))
+            if (ImGui::MenuItem("Save ...", "Ctrl+S"))
                 save();
+            if (ImGui::MenuItem("Export skeleton ..."))
+                export_skeleton();
 
             ImGui::Separator();
             if (ImGui::MenuItem("Quit", "Alt+F4"))
