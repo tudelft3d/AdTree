@@ -964,7 +964,7 @@ namespace easy3d {
 	}
 
 
-    void Viewer::create_drawables(Model* m) {
+    void Viewer::create_drawables(Model* m, bool smooth_shading /*= false*/) {
         if (dynamic_cast<PointCloud*>(m)) {
             PointCloud* cloud = dynamic_cast<PointCloud*>(m);
             // create points drawable
@@ -983,79 +983,82 @@ namespace easy3d {
         else if (dynamic_cast<SurfaceMesh*>(m)) {
             SurfaceMesh* mesh = dynamic_cast<SurfaceMesh*>(m);
             TrianglesDrawable* surface = mesh->add_triangles_drawable("surface");
-#if 1   // flat shading
-            auto points = mesh->get_vertex_property<vec3>("v:point");
-            auto colors = mesh->get_vertex_property<vec3>("v:color");
 
-            std::vector<vec3> vertices, vertex_normals, vertex_colors;
-            for (auto f : mesh->faces()) {
-                // we assume convex polygonal faces and we render in triangles
-                SurfaceMesh::Halfedge start = mesh->halfedge(f);
-                SurfaceMesh::Halfedge cur = mesh->next_halfedge(mesh->next_halfedge(start));
-                SurfaceMesh::Vertex va = mesh->to_vertex(start);
-                const vec3& pa = points[va];
-                while (cur != start) {
-                    SurfaceMesh::Vertex vb = mesh->from_vertex(cur);
-                    SurfaceMesh::Vertex vc = mesh->to_vertex(cur);
-                    const vec3& pb = points[vb];
-                    const vec3& pc = points[vc];
-                    vertices.push_back(pa);
-                    vertices.push_back(pb);
-                    vertices.push_back(pc);
+            if (smooth_shading) {
+                auto points = mesh->get_vertex_property<vec3>("v:point");
+                surface->update_vertex_buffer(points.vector());
+                auto colors = mesh->get_vertex_property<vec3>("v:color");
+                if (colors)
+                    surface->update_color_buffer(colors.vector());
 
-                    const vec3& n = geom::triangle_normal(pa, pb, pc);
-                    vertex_normals.insert(vertex_normals.end(), 3, n);
-
-                    if (colors) {
-                        vertex_colors.push_back(colors[va]);
-                        vertex_colors.push_back(colors[vb]);
-                        vertex_colors.push_back(colors[vc]);
+                auto normals = mesh->get_vertex_property<vec3>("v:normal");
+                if (normals)
+                     surface->update_normal_buffer(normals.vector());
+                else {
+                    std::vector<vec3> normals;
+                    normals.reserve(mesh->n_vertices());
+                    for (auto v : mesh->vertices()) {
+                        const vec3& n = mesh->compute_vertex_normal(v);
+                        normals.push_back(n);
                     }
-                    cur = mesh->next_halfedge(cur);
+                    surface->update_normal_buffer(normals);
                 }
-            }
-            surface->update_vertex_buffer(vertices);
-            surface->update_normal_buffer(vertex_normals);
-            if (colors)
-                surface->update_color_buffer(vertex_colors);
-            surface->release_index_buffer();
-#else   // smooth shading
-            auto points = mesh->get_vertex_property<vec3>("v:point");
-            surface->update_vertex_buffer(points.vector());
-            auto colors = mesh->get_vertex_property<vec3>("v:color");
-            if (colors)
-                surface->update_color_buffer(colors.vector());
 
-            auto normals = mesh->get_vertex_property<vec3>("v:normal");
-            if (normals)
-                 surface->update_normal_buffer(normals.vector());
+                std::vector<unsigned int> indices;
+                for (auto f : mesh->faces()) {
+                    // we assume convex polygonal faces and we render in triangles
+                    SurfaceMesh::Halfedge start = mesh->halfedge(f);
+                    SurfaceMesh::Halfedge cur = mesh->next_halfedge(mesh->next_halfedge(start));
+                    SurfaceMesh::Vertex va = mesh->to_vertex(start);
+                    while (cur != start) {
+                        SurfaceMesh::Vertex vb = mesh->from_vertex(cur);
+                        SurfaceMesh::Vertex vc = mesh->to_vertex(cur);
+                        indices.push_back(static_cast<unsigned int>(va.idx()));
+                        indices.push_back(static_cast<unsigned int>(vb.idx()));
+                        indices.push_back(static_cast<unsigned int>(vc.idx()));
+                        cur = mesh->next_halfedge(cur);
+                    }
+                }
+                surface->update_index_buffer(indices);
+            }
             else {
-                std::vector<vec3> normals;
-                normals.reserve(mesh->n_vertices());
-                for (auto v : mesh->vertices()) {
-                    const vec3& n = mesh->compute_vertex_normal(v);
-                    normals.push_back(n);
+                auto points = mesh->get_vertex_property<vec3>("v:point");
+                auto colors = mesh->get_vertex_property<vec3>("v:color");
+
+                std::vector<vec3> vertices, vertex_normals, vertex_colors;
+                for (auto f : mesh->faces()) {
+                    // we assume convex polygonal faces and we render in triangles
+                    SurfaceMesh::Halfedge start = mesh->halfedge(f);
+                    SurfaceMesh::Halfedge cur = mesh->next_halfedge(mesh->next_halfedge(start));
+                    SurfaceMesh::Vertex va = mesh->to_vertex(start);
+                    const vec3& pa = points[va];
+                    while (cur != start) {
+                        SurfaceMesh::Vertex vb = mesh->from_vertex(cur);
+                        SurfaceMesh::Vertex vc = mesh->to_vertex(cur);
+                        const vec3& pb = points[vb];
+                        const vec3& pc = points[vc];
+                        vertices.push_back(pa);
+                        vertices.push_back(pb);
+                        vertices.push_back(pc);
+
+                        const vec3& n = geom::triangle_normal(pa, pb, pc);
+                        vertex_normals.insert(vertex_normals.end(), 3, n);
+
+                        if (colors) {
+                            vertex_colors.push_back(colors[va]);
+                            vertex_colors.push_back(colors[vb]);
+                            vertex_colors.push_back(colors[vc]);
+                        }
+                        cur = mesh->next_halfedge(cur);
+                    }
                 }
-                surface->update_normal_buffer(normals);
+                surface->update_vertex_buffer(vertices);
+                surface->update_normal_buffer(vertex_normals);
+                if (colors)
+                    surface->update_color_buffer(vertex_colors);
+                surface->release_index_buffer();
             }
 
-            std::vector<unsigned int> indices;
-            for (auto f : mesh->faces()) {
-                // we assume convex polygonal faces and we render in triangles
-                SurfaceMesh::Halfedge start = mesh->halfedge(f);
-                SurfaceMesh::Halfedge cur = mesh->next_halfedge(mesh->next_halfedge(start));
-                SurfaceMesh::Vertex va = mesh->to_vertex(start);
-                while (cur != start) {
-                    SurfaceMesh::Vertex vb = mesh->from_vertex(cur);
-                    SurfaceMesh::Vertex vc = mesh->to_vertex(cur);
-                    indices.push_back(static_cast<unsigned int>(va.idx()));
-                    indices.push_back(static_cast<unsigned int>(vb.idx()));
-                    indices.push_back(static_cast<unsigned int>(vc.idx()));
-                    cur = mesh->next_halfedge(cur);
-                }
-            }
-            surface->update_index_buffer(indices);
-#endif
             surface->set_default_color(easy3d::vec3(1.0f, 0.67f, 0.5f));
         }
     }
@@ -1080,7 +1083,7 @@ namespace easy3d {
             model->lines_drawables().empty() &&
             model->triangles_drawables().empty())
         {
-            create_drawables(model);
+            create_drawables(model, true);
         }
 
         Box3 box;

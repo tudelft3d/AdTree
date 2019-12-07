@@ -306,38 +306,38 @@ bool TreeViewer::create_skeleton_drawable(SkeletonType type)
         return false;
 
 	//get the skeleton graph to be rendered
-    const Graph* RenderGraph = nullptr;
+    const Graph* skeleton = nullptr;
     switch (type) {
     case ST_DELAUNAY:
-        RenderGraph = &(skeleton_->get_delaunay());
+        skeleton = &(skeleton_->get_delaunay());
         break;
     case ST_MST:
-        RenderGraph = &(skeleton_->get_mst());
+        skeleton = &(skeleton_->get_mst());
         break;
     case ST_SIMPLIFIED:
-        RenderGraph = &(skeleton_->get_simplified_skeleton());
+        skeleton = &(skeleton_->get_simplified_skeleton());
         break;
     case ST_SMOOTHED:
-        RenderGraph = &(skeleton_->get_smoothed_skeleton());
+        skeleton = &(skeleton_->get_smoothed_skeleton());
         break;
     }
-    if (!RenderGraph)
+    if (!skeleton)
 	{
-		std::cout << "fails to render the graph!" << std::endl;
+        std::cout << "skeleton does not exist" << std::endl;
 		return false;
 	}
 
 	//create the vertices vector for rendering
 	std::vector<easy3d::vec3> graph_points;
-	std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*RenderGraph);
+    std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*skeleton);
 	SGraphVertexDescriptor dVertex1, dVertex2;
 	easy3d::vec3 pVertex1, pVertex2;
 	for (SGraphEdgeIterator eIter = ep.first; eIter != ep.second; ++eIter)
 	{
-		dVertex1 = source(*eIter, *RenderGraph);
-		dVertex2 = target(*eIter, *RenderGraph);
-		pVertex1 = (*RenderGraph)[dVertex1].cVert;
-		pVertex2 = (*RenderGraph)[dVertex2].cVert;
+        dVertex1 = source(*eIter, *skeleton);
+        dVertex2 = target(*eIter, *skeleton);
+        pVertex1 = (*skeleton)[dVertex1].cVert;
+        pVertex2 = (*skeleton)[dVertex2].cVert;
 		graph_points.push_back(pVertex1);
 		graph_points.push_back(pVertex2);
 	}
