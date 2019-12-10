@@ -6,7 +6,7 @@ Remote Sensing. 2019, 11(18), 2074.
 ```
 Please consider citing our paper if you use the code/program (or part of it).
 
-![](./resource/images/AdTree.jpg)
+![](AdTree.jpg)
 <p align="center">3D Trees reconstructed from point clouds</p>
 
 ### Textured rendering (both leaves and branches) coming soon ...
