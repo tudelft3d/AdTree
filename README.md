@@ -6,7 +6,7 @@ Remote Sensing. 2019, 11(18), 2074.
 ```
 Please consider citing our paper if you use the code/program (or part of it).
 
-![](AdTree.jpg)
+![](./resource/images/AdTree.jpg)
 <p align="center">3D Trees reconstructed from point clouds</p>
 
 ### Textured rendering (both leaves and branches) coming soon ...
@@ -15,6 +15,7 @@ Please consider citing our paper if you use the code/program (or part of it).
 You can build AdTree from the source code (tested on Windows, macOS, and Linux). 
 
 This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
+![](./resource/images/ui.jpg)
 
 ---
 
