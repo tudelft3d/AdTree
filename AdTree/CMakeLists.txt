@@ -6,6 +6,7 @@ project(${PROJECT_NAME})
 
 add_executable(${PROJECT_NAME}
                 main.cpp
+                graph.h
                 tree_viewer.h
                 tree_viewer.cpp
                 skeleton.h
