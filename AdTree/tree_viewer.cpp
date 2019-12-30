@@ -357,8 +357,8 @@ bool TreeViewer::create_skeleton_drawable(SkeletonType type)
 bool TreeViewer::reconstruct_skeleton() {
 #ifndef NDEBUG
         message_box("Performance hint!",
-                    "You are runing a debug version of AdTree, which can be slow. If so, "
-                    "please consider building and running AdTree in release mode.",
+                    "You are runing a debug version of AdTree, which can be slow.\n"
+                    "Please consider building and running AdTree in release mode.",
                     Type::warning,
                     Choice::ok
                     );
