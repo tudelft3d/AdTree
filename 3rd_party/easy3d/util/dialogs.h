@@ -73,6 +73,27 @@ namespace easy3d
     };
 
 
+    enum class Type {
+         info = 0,
+         warning,
+         error,
+         question
+    };
+
+    enum class Choice {
+        ok = 0,
+        ok_cancel,
+        yes_no,
+        yes_no_cancel
+    };
+    int message_box(
+            const std::string& title,
+            const std::string& message,
+            const Type& type = Type::info,
+            const Choice& choice = Choice::ok_cancel
+            );
+
+
     class ColorDialog {
     public:
         // c is the current color

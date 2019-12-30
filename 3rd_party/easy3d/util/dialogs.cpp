@@ -138,6 +138,38 @@ namespace easy3d {
     }
 
 
+    int message_box(
+            const std::string& title,
+            const std::string& message,
+            const Type& type,
+            const Choice& choice
+            )
+    {
+        // 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel
+        int aDefaultButton = 1;
+
+        const char* aDialogType = nullptr;
+        switch (choice) {
+            case Choice::ok:                aDialogType = "ok";             break;
+            case Choice::ok_cancel:         aDialogType = "okcancel";       break;
+            case Choice::yes_no:            aDialogType = "yesno";          break;
+            case Choice::yes_no_cancel:     aDialogType = "yesnocancel";    break;
+        }
+
+        const char* aIconType = nullptr;
+        switch (type) {
+            case Type::info:        aIconType = "info";       break;
+            case Type::warning:     aIconType = "warning";    break;
+            case Type::error:       aIconType = "error";      break;
+            case Type::question:    aIconType = "question";   break;
+        }
+        return tinyfd_messageBox(
+                    title.c_str(),
+                    message.c_str(),
+                    aDialogType,
+                    aIconType,
+                    aDefaultButton);
+    }
 
 
     // c is the current color
