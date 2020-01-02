@@ -12,7 +12,7 @@ Please consider citing our paper if you use the code/program (or part of it).
 ### Textured rendering (both leaves and branches) coming soon ...
 
 ### Build and Run AdTree
-You can build AdTree from the source code (tested on Windows, macOS, and Linux). 
+You can build AdTree from the source code using CMake (tested on Windows, macOS, and Linux). 
 
 This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
 <img src="./resource/images/ui.jpg" width="600"/>
