@@ -12,7 +12,9 @@ Please consider citing our paper if you use the code/program (or part of it).
 ### Textured rendering (both leaves and branches) coming soon ...
 
 ### Build and Run AdTree
-You can build AdTree from the source code using CMake (tested on Windows, macOS, and Linux). 
+AdTree has been tested on macOS, Linux, and Windows. You should also be able to build it on other platforms.
+
+Run CMake to generate project files for you IDE. In case you use Qt Creator or other IDEs that can handle the CMakeLists.txt file, simply open that file and then all files will be well organized as projects.
 
 This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
 <img src="./resource/images/ui.jpg" width="600"/>
