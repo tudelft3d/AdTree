@@ -45,26 +45,36 @@ namespace easy3d {
 
 			io::LineInputStream in(input);
 
-			// get length of file
-			// input.seekg(0, input.end);
-			// std::streamoff length = input.tellg();
-			// input.seekg(0, input.beg);
-			// ProgressLogger progress(length);
+            double x0, y0, z0;  // the first point
+            bool got_first_point = false;
+            while (!input.eof()) {
+                in.get_line();;
+                if (in.current_line()[0] != '#') {
+                    in >> x0 >> y0 >> z0;
+                    if (!in.fail()) {
+                        cloud->add_vertex(vec3(0,0,0));
+                        got_first_point = true;
+                        break;
+                    }
+                }
+            }
+            if (!got_first_point)
+                return false;
 
-			vec3 p;
+            double x, y, z;
 			while (!input.eof()) {
-				in.get_line();;
+                in.get_line();
 				if (in.current_line()[0] != '#') {
-					in >> p;
+                    double x, y, z;
+                    in >> x >> y >> z;
 					if (!in.fail()) {
-						cloud->add_vertex(p);
-
-						//  std::streamoff pos = input.tellg();
-						//	progress.notify(pos);
+                        cloud->add_vertex(vec3(x-x0, y-y0, z-z0));
 					}
 				}
 			}
 
+            auto prop = cloud->add_model_property<vec3>("translation");
+            prop[0] = vec3(x0, y0, z0);
 			return true;
 		}
 
