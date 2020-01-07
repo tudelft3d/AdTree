@@ -44,10 +44,10 @@ namespace easy3d {
 }
 
 
-// The original easy3d viewer enbales multiple model. In TreeViewer, we allow only three:
-//    - model #1: point cloud
-//    - model #2: 3D model of tree branches
-//    - model #3: leaves
+// The original easy3d viewer enbales multiple models. In TreeViewer, we allow only three:
+//    - model #1: the point cloud
+//    - model #2: the 3D model of tree branches
+//    - model #3: the 3D model of leaves
 
 class TreeViewer : public easy3d::ViewerImGui
 {
