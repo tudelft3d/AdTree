@@ -63,6 +63,15 @@
 #include <easy3d/fileio/point_cloud_io.h>
 #include <easy3d/fileio/surface_mesh_io.h>
 
+
+// enforce the same behavior on macOS and other platforms (i.e., Windows, Linux)
+#ifdef __APPLE__
+#define EASY3D_MOD_CONTROL GLFW_MOD_SUPER
+#else
+#define EASY3D_MOD_CONTROL GLFW_MOD_CONTROL
+#endif
+
+
 namespace easy3d {
 
 
@@ -524,7 +533,7 @@ namespace easy3d {
 
 
 	bool Viewer::mouse_release_event(int x, int y, int button, int modifiers) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT && modifiers == GLFW_MOD_CONTROL) { // ZOOM_ON_REGION
+        if (button == GLFW_MOUSE_BUTTON_LEFT && modifiers == EASY3D_MOD_CONTROL) { // ZOOM_ON_REGION
 			int xmin = std::min(mouse_pressed_x_, x);	int xmax = std::max(mouse_pressed_x_, x);
 			int ymin = std::min(mouse_pressed_y_, y);	int ymax = std::max(mouse_pressed_y_, y);
 			camera_->fitScreenRegion(xmin, ymin, xmax, ymax);
@@ -538,7 +547,7 @@ namespace easy3d {
 
 
 	bool Viewer::mouse_drag_event(int x, int y, int dx, int dy, int button, int modifiers) {
-		if (modifiers != GLFW_MOD_CONTROL) { // GLFW_MOD_CONTROL is reserved for zoom on region
+        if (modifiers != EASY3D_MOD_CONTROL) { // EASY3D_MOD_CONTROL is reserved for zoom on region
 			switch (button)
 			{
 			case GLFW_MOUSE_BUTTON_LEFT:
@@ -613,11 +622,11 @@ namespace easy3d {
 			float step = 0.02f * camera_->sceneRadius();
 			camera_->frame()->translate(camera_->frame()->inverseTransformOf(vec3(0.0, 0.0, step)));
 		}
-		else if (key == GLFW_KEY_UP && modifiers == GLFW_MOD_CONTROL) {	// move camera up
+        else if (key == GLFW_KEY_UP && modifiers == EASY3D_MOD_CONTROL) {	// move camera up
 			float step = 0.02f * camera_->sceneRadius();
 			camera_->frame()->translate(camera_->frame()->inverseTransformOf(vec3(0.0, step, 0.0)));
 		}
-		else if (key == GLFW_KEY_DOWN && modifiers == GLFW_MOD_CONTROL) {	// move camera down 
+        else if (key == GLFW_KEY_DOWN && modifiers == EASY3D_MOD_CONTROL) {	// move camera down
 			float step = 0.02f * camera_->sceneRadius();
 			camera_->frame()->translate(camera_->frame()->inverseTransformOf(vec3(0.0, -step, 0.0)));
 		}
@@ -654,9 +663,9 @@ namespace easy3d {
 			//if (manipulatedFrame())
 			//	manipulatedFrame()->alignWithFrame(camera_->frame());
 		}
-		else if (key == GLFW_KEY_O && modifiers == GLFW_MOD_CONTROL)
+        else if (key == GLFW_KEY_O && modifiers == EASY3D_MOD_CONTROL)
 			open();
-		else if (key == GLFW_KEY_S && modifiers == GLFW_MOD_CONTROL)
+        else if (key == GLFW_KEY_S && modifiers == EASY3D_MOD_CONTROL)
 			save();
 
 		else if (key == GLFW_KEY_MINUS && modifiers == 0) {
@@ -680,9 +689,9 @@ namespace easy3d {
 			}
 		}
 
-		else if (key == GLFW_KEY_MINUS && modifiers == GLFW_MOD_CONTROL)
+        else if (key == GLFW_KEY_MINUS && modifiers == EASY3D_MOD_CONTROL)
 			camera_->frame()->action_zoom(-1, camera_);
-		else if (key == GLFW_KEY_EQUAL && modifiers == GLFW_MOD_CONTROL)
+        else if (key == GLFW_KEY_EQUAL && modifiers == EASY3D_MOD_CONTROL)
 			camera_->frame()->action_zoom(1, camera_);
 
 		else if (key == GLFW_KEY_COMMA && modifiers == 0) {
