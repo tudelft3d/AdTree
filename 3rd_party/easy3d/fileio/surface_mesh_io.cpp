@@ -29,7 +29,7 @@
 #include <clocale>
 
 #include <easy3d/core/surface_mesh.h>
-#include <easy3d/util/file.h>
+#include <easy3d/util/file_system.h>
 #include <easy3d/util/stop_watch.h>
 
 
@@ -40,7 +40,7 @@ namespace easy3d {
 	{
 		std::setlocale(LC_NUMERIC, "C");
 
-        const std::string& ext = file::extension(file_name, true);
+        const std::string& ext = file_system::extension(file_name, true);
 
 		SurfaceMesh* mesh = new SurfaceMesh;
 		mesh->set_name(file_name);
@@ -73,7 +73,7 @@ namespace easy3d {
 			return false;
 		}
 
-		std::string ext = file::extension(file_name, true);
+        std::string ext = file_system::extension(file_name, true);
 
 		StopWatch w;
 

@@ -1,5 +1,5 @@
-#ifndef _ADTREE_GRAPH_H_
-#define _ADTREE_GRAPH_H_
+#ifndef ADTREE_GRAPH_H
+#define ADTREE_GRAPH_H
 
 /*
 *	Copyright (C) 2019 by

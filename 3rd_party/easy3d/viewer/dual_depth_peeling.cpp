@@ -37,7 +37,7 @@
 #include <easy3d/viewer/camera.h>
 #include <easy3d/viewer/transform.h>
 #include <easy3d/viewer/setting.h>
-#include <easy3d/util/file.h>
+#include <easy3d/util/file_system.h>
 
 
 //#define SAVE_ITERMEDIATE_FBO

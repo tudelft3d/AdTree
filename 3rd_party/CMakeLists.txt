@@ -9,3 +9,5 @@ add_subdirectory("optimizer_lm")
 add_subdirectory("easy3d")
 add_subdirectory("imgui")
 add_subdirectory("tinyfiledialogs")
+add_subdirectory("rply")
+

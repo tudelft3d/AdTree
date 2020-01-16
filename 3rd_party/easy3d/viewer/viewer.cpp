@@ -58,7 +58,7 @@
 #include <easy3d/viewer/opengl_timer.h>
 
 #include <easy3d/util/dialogs.h>
-#include <easy3d/util/file.h>
+#include <easy3d/util/file_system.h>
 #include <easy3d/util/timer.h>
 #include <easy3d/fileio/point_cloud_io.h>
 #include <easy3d/fileio/surface_mesh_io.h>
@@ -941,7 +941,7 @@ namespace easy3d {
             }
         }
 
-        const std::string& ext = file::extension(file_name, true);
+        const std::string& ext = file_system::extension(file_name, true);
         bool is_ply_mesh = false;
         Model* model = nullptr;
         if (ext == "obj") { // mesh
@@ -1185,12 +1185,12 @@ namespace easy3d {
         }
 
         const std::vector<std::string> filetypes = {"*.ppm", "*.tga", "*.bmp"};
-        std::string file_name = file::replace_extension(current_model()->name(), "ppm");
+        std::string file_name = file_system::replace_extension(current_model()->name(), "ppm");
         file_name = FileDialog::save(filetypes, file_name);
         if (file_name.empty())
             return false;
 
-        const std::string& ext = file::extension(file_name, true);
+        const std::string& ext = file_system::extension(file_name, true);
         if (ext != "ppm" && ext != "tga" && ext != "bmp") {
             std::cerr << "snapshot format must be ppm, tga, or bmp" << std::endl;
             return false;

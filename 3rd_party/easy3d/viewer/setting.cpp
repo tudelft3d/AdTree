@@ -25,7 +25,7 @@
 
 
 #include <easy3d/viewer/setting.h>
-#include <easy3d/util/file.h>
+#include <easy3d/util/file_system.h>
 
 
 namespace easy3d {
@@ -95,13 +95,13 @@ namespace easy3d {
 		// resource directory (containing color maps, shaders, textures, etc.)
 		std::string resource_directory() {
 			std::string dir = "resource";
-			if (file::is_directory(dir)) 
+            if (file_system::is_directory(dir))
 				return "./" + dir;
-			else if (file::is_directory("../resource"))
+            else if (file_system::is_directory("../resource"))
 				return "../resource";
-			else if (file::is_directory("../../resource"))
+            else if (file_system::is_directory("../../resource"))
 				return "../../resource";
-			else if (file::is_directory("../../../resource"))
+            else if (file_system::is_directory("../../../resource"))
 				return "../../../resource";
 			return dir;
 		}
