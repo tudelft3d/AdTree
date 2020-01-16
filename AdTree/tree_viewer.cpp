@@ -232,8 +232,10 @@ void TreeViewer::export_skeleton() const {
     auto vts = boost::vertices(skeleton);
     for (SGraphVertexIterator iter = vts.first; iter != vts.second; ++iter) {
         SGraphVertexDescriptor vd = *iter;
-        const easy3d::vec3& vp = skeleton[vd].cVert;
-        vvmap[vd] = g.add_vertex(vp);
+        if (boost::degree(vd, skeleton) != 0 ) { // ignore isolated vertices
+            const easy3d::vec3& vp = skeleton[vd].cVert;
+            vvmap[vd] = g.add_vertex(vp);
+        }
     }
 
     auto egs = boost::edges(skeleton);
