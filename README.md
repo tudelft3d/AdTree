@@ -12,9 +12,10 @@ Please consider citing our paper if you use the code/program (or part of it).
 ### Textured rendering (both leaves and branches) coming soon ...
 
 ### Build and Run AdTree
-AdTree depends on some third-party libraries and **all dependencies are included** in the distribution. So you do not need to do anything about third-party libraries (Note: AdTree uses a stripped earlier version of [Easy3D](https://github.com/LiangliangNan/Easy3D), which is not compitable with the recent version).
+AdTree depends on some third-party libraries and most dependencies are included in the distribution except 
+[Boost](https://www.boost.org/) (Note: AdTree uses a stripped earlier version of [Easy3D](https://github.com/LiangliangNan/Easy3D), which is not compitable with the recent version).
 
-You do need [CMake](https://cmake.org/download/) and of course a compiler to build AdTree:
+You need [CMake](https://cmake.org/download/) and of course a compiler to build AdTree:
 
 - CMake >= 3.1
 - a compiler that supports `>= C++11`
