@@ -13,7 +13,9 @@ Please consider citing our paper if you use the code/program (or part of it).
 
 ### Build and Run AdTree
 AdTree depends on some third-party libraries and most dependencies are included in the distribution except 
-[Boost](https://www.boost.org/) (Note: AdTree uses a stripped earlier version of [Easy3D](https://github.com/LiangliangNan/Easy3D), which is not compitable with the recent version).
+[Boost](https://www.boost.org/). So you will need to have Boost install first. 
+
+Note: AdTree uses a stripped earlier version of [Easy3D](https://github.com/LiangliangNan/Easy3D), which is not compitable with the recent version.
 
 You need [CMake](https://cmake.org/download/) and of course a compiler to build AdTree:
 
