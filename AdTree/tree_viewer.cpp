@@ -387,8 +387,8 @@ bool TreeViewer::reconstruct_skeleton() {
         message_box("Performance hint!",
                     "You are runing a debug version of AdTree, which can be slow.\n"
                     "Please consider building and running AdTree in release mode.",
-                    Type::warning,
-                    Choice::ok
+                    easy3d::Type::warning,
+                    easy3d::Choice::ok
                     );
 #endif
 

@@ -5,3 +5,8 @@ x64
 build
 .DS_Store
 AdTree-build
+.idea
+cmake-build-debug
+cmake-build-release
+cmake-build-minsizerel
+cmake-build-relwithdebinfo
