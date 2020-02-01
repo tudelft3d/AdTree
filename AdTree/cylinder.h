@@ -34,6 +34,7 @@
 #include <utility>
 #include <ostream>
 #include <istream>
+#include <vector>
 #include <3rd_party/kd_tree/Vector3D.h>
 #include <stdio.h>
 #include "optimizer_lm.h"
