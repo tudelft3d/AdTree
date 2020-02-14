@@ -394,7 +394,7 @@ bool TreeViewer::reconstruct_skeleton() {
         return false;
     }
 
-    if (cloud()->vertices_size() > 50000) {
+    {   // offer users the option to remove duplicated points
         int answer = message_box("Robustness hint!",
                                  "The point cloud may has duplicated points. Remove duplication "
                                  "can improve robustness. Would like to do so?",
@@ -403,7 +403,7 @@ bool TreeViewer::reconstruct_skeleton() {
         );
         if (answer == 1) {
             const float threshold = cloud()->bounding_box().diagonal() * 0.001;
-            const auto& points_to_remove = easy3d::RemoveDuplication::apply(cloud(), threshold);
+            const auto &points_to_remove = easy3d::RemoveDuplication::apply(cloud(), threshold);
             for (auto v : points_to_remove)
                 cloud()->delete_vertex(v);
             cloud()->garbage_collection();
