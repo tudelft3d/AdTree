@@ -29,7 +29,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE GLEW_STATIC)
 
 
 find_package(OpenGL REQUIRED)
-target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} glew glfw imgui core util fileio viewer tetgen kd_tree cminpack optimizer_lm)
+target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} glew glfw imgui core util fileio algo viewer tetgen kd_tree cminpack optimizer_lm)
 
 
 find_package(Boost REQUIRED) # It's "Boost", not "BOOST" or "boost". Case matters.

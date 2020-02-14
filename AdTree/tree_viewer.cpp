@@ -30,7 +30,6 @@
 #include "tree_viewer.h"
 #include "skeleton.h"
 
-#include <3rd_party/glew/include/GL/glew.h>		// Initialize with glewInit() 
 #include <3rd_party/glfw/include/GLFW/glfw3.h>	// Include glfw3.h after our OpenGL definitions
 
 #include <easy3d/viewer/drawable.h>
@@ -42,14 +41,13 @@
 #include <easy3d/util/dialogs.h>
 #include <easy3d/util/file_system.h>
 #include <easy3d/fileio/surface_mesh_io.h>
-#include <easy3d/fileio/point_cloud_io.h>
 #include <easy3d/fileio/graph_io.h>
 #include <easy3d/viewer/shader_program.h>
 #include <easy3d/viewer/shader_manager.h>
 #include <easy3d/viewer/setting.h>
+#include <easy3d/algo/point_cloud_simplification.h>
 
 #include <iostream>
-#include <fstream>
 
 
 
@@ -177,6 +175,23 @@ bool TreeViewer::open()
     const std::string& file_name = easy3d::FileDialog::open(filetypes, std::string(""));
 
     if (Viewer::open(file_name)) {
+
+        if (cloud()->vertices_size() > 50000) {
+            int answer = message_box("Performance hint!",
+                                     "The point cloud has more than 50k points. Would you like to downsample the point cloud?",
+                                     easy3d::Type::warning,
+                                     easy3d::Choice::yes_no
+            );
+            if (answer == 1) {
+                const float threshold = cloud()->bounding_box().diagonal() * 0.5 * 0.005;
+                const auto& points_to_remove = easy3d::PointCloudSimplification::grid_simplification(cloud(), threshold);
+                for (auto v : points_to_remove)
+                    cloud()->delete_vertex(v);
+                cloud()->garbage_collection();
+                std::cout << points_to_remove.size() << " points deleted" << std::endl;
+            }
+        }
+
         set_title("AdTree - " + easy3d::file_system::simple_name(cloud()->name()));
         fit_screen();
         return true;
@@ -246,8 +261,7 @@ void TreeViewer::export_skeleton() const {
     }
 
     if (easy3d::GraphIO::save(file_name, &g))
-        std::cout << "Save skeleton done. You can use easy3d to visualize the skeleton. The default\n"
-                     "\teasy3d viewer (Easy3D/tutorials/Tutorial_301_Viewer) is available at: \n"
+        std::cout << "Save skeleton done. You can use easy3d to visualize the skeleton, which is available at: \n"
                      "\thttps://github.com/LiangliangNan/Easy3D" << std::endl;
     else
         std::cerr << "Save skeleton failed" << std::endl;
