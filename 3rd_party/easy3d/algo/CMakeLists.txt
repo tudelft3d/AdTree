@@ -5,11 +5,11 @@ project(${PROJECT_NAME})
 
 
 set(${PROJECT_NAME}_HEADERS
-        point_cloud_simplification.h
+        remove_duplication.h
         )
 
 set(${PROJECT_NAME}_SOURCES
-        point_cloud_simplification.cpp
+        remove_duplication.cpp
         )
 
 

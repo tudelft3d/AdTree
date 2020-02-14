@@ -45,7 +45,7 @@
 #include <easy3d/viewer/shader_program.h>
 #include <easy3d/viewer/shader_manager.h>
 #include <easy3d/viewer/setting.h>
-#include <easy3d/algo/point_cloud_simplification.h>
+#include <easy3d/algo/remove_duplication.h>
 
 #include <iostream>
 
@@ -175,23 +175,6 @@ bool TreeViewer::open()
     const std::string& file_name = easy3d::FileDialog::open(filetypes, std::string(""));
 
     if (Viewer::open(file_name)) {
-
-        if (cloud()->vertices_size() > 50000) {
-            int answer = message_box("Performance hint!",
-                                     "The point cloud has more than 50k points. Would you like to downsample the point cloud?",
-                                     easy3d::Type::warning,
-                                     easy3d::Choice::yes_no
-            );
-            if (answer == 1) {
-                const float threshold = cloud()->bounding_box().diagonal() * 0.5 * 0.005;
-                const auto& points_to_remove = easy3d::PointCloudSimplification::grid_simplification(cloud(), threshold);
-                for (auto v : points_to_remove)
-                    cloud()->delete_vertex(v);
-                cloud()->garbage_collection();
-                std::cout << points_to_remove.size() << " points deleted" << std::endl;
-            }
-        }
-
         set_title("AdTree - " + easy3d::file_system::simple_name(cloud()->name()));
         fit_screen();
         return true;
@@ -409,6 +392,23 @@ bool TreeViewer::reconstruct_skeleton() {
     if (!cloud()) {
         std::cout << "point cloud does not exist" << std::endl;
         return false;
+    }
+
+    if (cloud()->vertices_size() > 50000) {
+        int answer = message_box("Robustness hint!",
+                                 "The point cloud may has duplicated points. Remove duplication "
+                                 "can improve robustness. Would like to do so?",
+                                 easy3d::Type::warning,
+                                 easy3d::Choice::yes_no
+        );
+        if (answer == 1) {
+            const float threshold = cloud()->bounding_box().diagonal() * 0.001;
+            const auto& points_to_remove = easy3d::RemoveDuplication::apply(cloud(), threshold);
+            for (auto v : points_to_remove)
+                cloud()->delete_vertex(v);
+            cloud()->garbage_collection();
+            std::cout << cloud()->vertices_size() << " points remained" << std::endl;
+        }
     }
 
     if (skeleton_)

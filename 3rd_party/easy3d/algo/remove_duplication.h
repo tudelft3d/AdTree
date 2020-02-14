@@ -22,8 +22,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EASY3D_ALGO_POINT_CLOUD_SIMPLIFICATION_H
-#define EASY3D_ALGO_POINT_CLOUD_SIMPLIFICATION_H
+#ifndef EASY3D_REMOVE_DUPLICATION_H
+#define EASY3D_REMOVE_DUPLICATION_H
 
 
 #include <vector>
@@ -33,26 +33,21 @@
 
 namespace easy3d {
 
-    class PointCloudSimplification {
+    class RemoveDuplication {
     public:
-
-        //----- simplification using a grid (non-uniform) ------------------------------------------------
-
         /**
-         * Simplification of a point cloud using a regular grid covering the bounding box of the points. Simplification
-         * is done by keeping a representative point (chosen arbitrarily) for each cell of the grid. This is non-uniform
-         * simplification since the representative point is chosen arbitrarily.
+         * Remove duplicated points of a point clouds.
          * @param cloud The point cloud.
-         * @param cell_size The size of the cells of the grid.
-         * @return The indices of points to be deleted.
+         * @param epsilon The distance threshold. Points with a distance smaller than this value will be considered
+         *                as having duplications.
+         * @return The vertices that should to deleted.
          */
-        static std::vector<PointCloud::Vertex> grid_simplification(PointCloud *cloud, float cell_size);
-
+        static std::vector<PointCloud::Vertex> apply(PointCloud *cloud, float epsilon);
     };
 
 
 } // namespace easy3d
 
 
-#endif  // EASY3D_ALGO_POINT_CLOUD_SIMPLIFICATION_H
+#endif  // EASY3D_REMOVE_DUPLICATION_H
 
