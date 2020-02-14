@@ -407,6 +407,7 @@ bool TreeViewer::reconstruct_skeleton() {
             for (auto v : points_to_remove)
                 cloud()->delete_vertex(v);
             cloud()->garbage_collection();
+            cloud()->points_drawable("vertices")->update_vertex_buffer(cloud()->points());
             std::cout << cloud()->vertices_size() << " points remained" << std::endl;
         }
     }
