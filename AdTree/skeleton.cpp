@@ -98,7 +98,7 @@ bool Skeleton::build_delaunay(const easy3d::PointCloud* cloud)
 		tet_in.pointlist[count * 3 + 2] = points[v].z;
 		++count;
 	}
-	const std::string str("");
+	const std::string str("Q");
 	tetrahedralize(const_cast<char*>(str.c_str()), &tet_in, &tet_out);
 	for (long nTet = 0; nTet < tet_out.numberoftetrahedra; nTet++) 
 	{

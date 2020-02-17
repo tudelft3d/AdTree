@@ -7,9 +7,8 @@ project(${PROJECT_NAME})
 
 add_library(${PROJECT_NAME} STATIC 
 	tetgen.h
-	tetgen.cpp
-	predicates.h
-	predicates.cpp
+	tetgen.cxx
+	predicates.cxx
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

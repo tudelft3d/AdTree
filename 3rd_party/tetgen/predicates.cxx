@@ -113,8 +113,6 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "predicates.h" //[Liangliang]
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -124,6 +122,8 @@
 #ifdef LINUX
 #include <fpu_control.h>
 #endif /* LINUX */
+
+#include "tetgen.h"            // Defines the symbol REAL (float or double).
 
 #ifdef USE_CGAL_PREDICATES
   #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
