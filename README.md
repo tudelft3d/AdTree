@@ -15,20 +15,28 @@ Please consider citing our paper if you use the code/program (or part of it).
 AdTree depends on some third-party libraries and most dependencies are included in the distribution except 
 [Boost](https://www.boost.org/). So you will need to have Boost install first. 
 
-Note: AdTree uses a stripped earlier version of [Easy3D](https://github.com/LiangliangNan/Easy3D), which is not compitable with the recent version.
+Note: AdTree uses a stripped earlier version of [Easy3D](https://github.com/LiangliangNan/Easy3D), which is not 
+compatible with the latest version.
 
 You need [CMake](https://cmake.org/download/) and of course a compiler to build AdTree:
 
 - CMake `>= 3.1`
 - a compiler that supports `>= C++11`
 
-AdTree has been tested on macOS (Xcode >= 8), Windows (MSVC >=2015), and Linux (GCC >= 4.8, Clang >= 3.3). Machines nowadays typically provide higher [supports](https://en.cppreference.com/w/cpp/compiler_support), so you should be able to build AdTree on almost all platforms.
+AdTree has been tested on macOS (Xcode >= 8), Windows (MSVC >=2015), and Linux (GCC >= 4.8, Clang >= 3.3). Machines 
+nowadays typically provide higher [supports](https://en.cppreference.com/w/cpp/compiler_support), so you should be 
+able to build AdTree on almost all platforms.
 
-There are many options to build AdTree. Choose one of the following (or whatever you prefer):
+There are many options to build AdTree. Choose one of the following (or whatever you are familar with):
 
-- Option 1: Use any IDE that can directly handle CMakeLists files to open the `CMakeLists.txt` in the root directory of AdTree. Then you should have obtained a usable project and just build. I recommend using [CLion](https://www.jetbrains.com/clion/) or [QtCreator](https://www.qt.io/product).
-- Option 2: Use CMake to generate project files for you IDE. Then load the project to your IDE and build.
-- Option 3: Use CMake to generate Makefiles and then `make` (on Linux/macOS) or `nmake`(on Windows with Microsoft Visual Studio).
+- Option 1: Use any IDE that can directly handle CMakeLists files to open the `CMakeLists.txt` in the root directory 
+of AdTree. Then you should have obtained a usable project and just build. I recommend using
+ [CLion](https://www.jetbrains.com/clion/) or [QtCreator](https://www.qt.io/product).
+- Option 2: Use CMake to generate project files for your IDE. Then load the project to your IDE and build.
+- Option 3: Use CMake to generate Makefiles and then `make` (on Linux/macOS) or `nmake`(on Windows with Microsoft 
+Visual Studio).
+
+Don't have any experience with C/C++ programming? Have a look at [How to build AdTree step by step](./How_to_build.md).
 
 This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
 <img src="./resource/images/ui.jpg" width="600"/>
