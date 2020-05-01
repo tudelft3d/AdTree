@@ -1,3 +1,9 @@
+<p align="right">
+    <b> <img src="https://img.shields.io/badge/Supported%20Platforms-Windows%20%7C%20macOS%20%7C%20Linux-green" title="Supported Platforms"/> </b> <br>
+    <b> <img src="https://img.shields.io/badge/license-GPL-blue" title="license-GPL"/> </b> <br> <br>
+</p>
+
+
 AdTree implements the tree reconstruction method described in the following [paper](https://3d.bk.tudelft.nl/liangliang/publications/2019/adtree/AdTree_RS-2019.pdf):
 ```
 Shenglan Du, Roderik Lindenbergh, Hugo Ledoux, Jantien Stoter, and Liangliang Nan.
@@ -39,7 +45,11 @@ Visual Studio).
 Don't have any experience with C/C++ programming? Have a look at [How to build AdTree step by step](./How_to_build.md).
 
 This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
-<img src="./resource/images/ui.jpg" width="600"/>
+
+<p align="center"> 
+     <img src="./resource/images/ui.jpg" width="600"> 
+</p>
+ 
 
 ---
 
