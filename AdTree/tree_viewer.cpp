@@ -425,6 +425,11 @@ bool TreeViewer::reconstruct_skeleton() {
     }
     bool status = skeleton_->reconstruct_branches(cloud(), mesh);
     if (status) {
+        auto offset = cloud()->get_model_property<easy3d::vec3>("translation");
+        if (offset) {
+            auto prop = mesh->add_model_property<easy3d::vec3>("translation");
+            prop[0] = offset[0];
+        }
         if (!branches())
             add_model(mesh);
 

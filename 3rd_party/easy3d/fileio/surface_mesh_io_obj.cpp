@@ -470,6 +470,12 @@ namespace easy3d {
 				return false;
 			}
 
+			vec3 p0(0.0f, 0.0f, 0.0f);
+            auto offset = mesh->get_model_property<easy3d::vec3>("translation");
+            if (offset) {
+                p0 = offset[0];
+            }
+
 			// comment
             fprintf(out, "# OBJ exported from Easy3D\n");
 
@@ -478,7 +484,7 @@ namespace easy3d {
 			for (SurfaceMesh::VertexIterator vit = mesh->vertices_begin(); vit != mesh->vertices_end(); ++vit)
 			{
 				const vec3& p = points[*vit];
-				fprintf(out, "v %.10f %.10f %.10f\n", p[0], p[1], p[2]);
+				fprintf(out, "v %.10f %.10f %.10f\n", p[0] + p0[0], p[1] + p0[1], p[2] + p0[2]);
 			}
 
 			//normals
