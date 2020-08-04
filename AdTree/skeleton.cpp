@@ -191,11 +191,11 @@ bool Skeleton::simplify_skeleton()
 }
 
 
-// internaally a hermite curve with varying radius
+// internally a hermite curve with varying radius
 bool Skeleton::smooth_skeleton()
 {
     if (num_edges(simplified_skeleton_) < 2) {
-        std::cout << "skeleton doesn not exist!" << std::endl;
+        std::cout << "skeleton does not exist!" << std::endl;
         return false;
     }
 
