@@ -938,7 +938,7 @@ void Skeleton::assign_points_to_edges()
         Vector3D pSource(simplified_skeleton_[sourceV].cVert.x, simplified_skeleton_[sourceV].cVert.y, simplified_skeleton_[sourceV].cVert.z);
         Vector3D pTarget(simplified_skeleton_[targetV].cVert.x, simplified_skeleton_[targetV].cVert.y, simplified_skeleton_[targetV].cVert.z);
 		//query neighbor points from the kd tree
-		KDtree_->queryLineIntersection(pSource, pTarget, 8.0 * currentR, true, true);
+		KDtree_->queryLineIntersection(pSource, pTarget, 3.5 * currentR, true, true);
 		int neighbourSize = KDtree_->getNOfFoundNeighbours();
 		for (int i = 0; i < neighbourSize; i++)
 		{
