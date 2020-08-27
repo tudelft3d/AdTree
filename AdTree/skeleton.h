@@ -32,7 +32,6 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <Eigen\dense>
 #include <3rd_party/kd_tree/Vector3D.h>
 #include <3rd_party/kd_tree/KdTree.h>
 #include <easy3d/core/types.h>
@@ -41,8 +40,6 @@ namespace easy3d {
 	class PointCloud;
     class SurfaceMesh;
 }
-
-using namespace Eigen;
 
 //define the vertex and edge properties
 struct SGraphVertexProp

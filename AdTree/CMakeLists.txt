@@ -35,10 +35,3 @@ target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} glew glfw imgui core u
 find_package(Boost REQUIRED) # It's "Boost", not "BOOST" or "boost". Case matters.
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${Boost_headers_DIR})
-
-
-INCLUDE_DIRECTORIES ( "$ENV{EIGEN_INCLUDE_DIRS}" )
-
-
-
-

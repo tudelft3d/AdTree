@@ -32,6 +32,7 @@
 #include <easy3d/core/point_cloud.h>
 #include <easy3d/core/surface_mesh.h>
 #include <easy3d/core/random.h>
+#include <easy3d/core/principal_axes.h>
 #include <3rd_party/tetgen/tetgen.h>
 
 #include <iostream>
@@ -999,16 +1000,17 @@ void Skeleton::fit_trunk()
 	//initialize the mean, the point cloud matrix
 	Vector3D pTop(0.0, 0.0, -DBL_MAX);
 	Vector3D pBottom(0.0, 0.0, DBL_MAX);
-	MatrixXd pMatrix(pCount, 3);
+
+	easy3d::PrincipalAxes<3, double> pca;
+	pca.begin();
 	//extract the corresponding point cloud
-	std::vector<std::vector<double>> ptlist;
+	std::vector< std::vector<double> > ptlist;
 	for (int np = 0; np < pCount; np++)
 	{
         int npIndex = simplified_skeleton_[trunkE].vecPoints.at(np);
-		Vector3D pt = Points_[npIndex];
-		pMatrix(np, 0) = pt.x;
-		pMatrix(np, 1) = pt.y;
-		pMatrix(np, 2) = pt.z;
+		const Vector3D& pt = Points_[npIndex];
+        pca.add_point(easy3d::dvec3(pt.x, pt.y, pt.z));
+
 		std::vector<double> ptemp;
 		ptemp.push_back(pt.x);
 		ptemp.push_back(pt.y);
@@ -1020,19 +1022,13 @@ void Skeleton::fit_trunk()
 		if (pt.z > pTop.z)
 			pTop = pt;
 	}
-
-	//compute the largest eigen vector of the point cloud matrix 
-	MatrixXd meanval = pMatrix.colwise().mean();
-	RowVectorXd meanvecRow = meanval;
-	pMatrix.rowwise() -= meanvecRow;  //normalize the point cloud matrix
-	MatrixXd pCov = pMatrix.adjoint() * pMatrix; 
-	pCov = pCov.array() / (pMatrix.rows() - 1); //compute the covariance matrix
-	SelfAdjointEigenSolver<MatrixXd> eig(pCov);
-	MatrixXd eigVectors = eig.eigenvectors();
+    pca.end();
 
 	//initialize the cylinder with the positions computed from points
-	Vector3D pMean(meanvecRow(0), meanvecRow(1), meanvecRow(2)); //get the mean point
-	Vector3D cDir(eigVectors(0, 2), eigVectors(1, 2), eigVectors(2, 2)); //the last vector in the matrix is the principal vector
+	const auto& center = pca.center();
+	Vector3D pMean(center.x, center.y, center.z); //get the mean point
+	const auto& ev = pca.axis(0);   //the largest eigen vector
+	Vector3D cDir(ev.x, ev.y, ev.z);
 	if (cDir.z < 0)
 		cDir = -cDir;
 	Vector3D cDirTop = pTop - pMean;
