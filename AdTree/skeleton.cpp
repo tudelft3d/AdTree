@@ -938,7 +938,7 @@ void Skeleton::assign_points_to_edges()
         Vector3D pSource(simplified_skeleton_[sourceV].cVert.x, simplified_skeleton_[sourceV].cVert.y, simplified_skeleton_[sourceV].cVert.z);
         Vector3D pTarget(simplified_skeleton_[targetV].cVert.x, simplified_skeleton_[targetV].cVert.y, simplified_skeleton_[targetV].cVert.z);
 		//query neighbor points from the kd tree
-		KDtree_->queryLineIntersection(pSource, pTarget, 3.0 * currentR, true, true);
+		KDtree_->queryLineIntersection(pSource, pTarget, 8.0 * currentR, true, true);
 		int neighbourSize = KDtree_->getNOfFoundNeighbours();
 		for (int i = 0; i < neighbourSize; i++)
 		{
@@ -972,8 +972,8 @@ void Skeleton::fit_trunk()
 	}
 
 	//if the points attached are not enough, then don't conduct fitting
-    std::size_t edgePoints = simplified_skeleton_[trunkE].vecPoints.size();
-	if (edgePoints <= 20)
+    std::size_t pCount = simplified_skeleton_[trunkE].vecPoints.size();
+	if (pCount <= 20)
 	{
         if (!quiet_)
             std::cout << "the least squares fails because of not enough points!" << std::endl;
@@ -992,23 +992,58 @@ void Skeleton::fit_trunk()
         sourceV = target(trunkE, simplified_skeleton_);
         targetV = source(trunkE, simplified_skeleton_);
 	}
-    Vector3D pSource(simplified_skeleton_[sourceV].cVert.x, simplified_skeleton_[sourceV].cVert.y, simplified_skeleton_[sourceV].cVert.z);
-    Vector3D pTarget(simplified_skeleton_[targetV].cVert.x, simplified_skeleton_[targetV].cVert.y, simplified_skeleton_[targetV].cVert.z);
-    Cylinder currentC = Cylinder(pSource, pTarget, simplified_skeleton_[trunkE].nRadius);
+    //Vector3D pSource(simplified_skeleton_[sourceV].cVert.x, simplified_skeleton_[sourceV].cVert.y, simplified_skeleton_[sourceV].cVert.z);
+    //Vector3D pTarget(simplified_skeleton_[targetV].cVert.x, simplified_skeleton_[targetV].cVert.y, simplified_skeleton_[targetV].cVert.z);
+    //Cylinder currentC = Cylinder(pSource, pTarget, simplified_skeleton_[trunkE].nRadius);
 
+	//initialize the mean, the point cloud matrix
+	Vector3D pTop(0.0, 0.0, -DBL_MAX);
+	Vector3D pBottom(0.0, 0.0, DBL_MAX);
+	MatrixXd pMatrix(pCount, 3);
 	//extract the corresponding point cloud
 	std::vector<std::vector<double>> ptlist;
-	for (int np = 0; np < edgePoints; np++)
+	for (int np = 0; np < pCount; np++)
 	{
         int npIndex = simplified_skeleton_[trunkE].vecPoints.at(np);
 		Vector3D pt = Points_[npIndex];
+		pMatrix(np, 0) = pt.x;
+		pMatrix(np, 1) = pt.y;
+		pMatrix(np, 2) = pt.z;
 		std::vector<double> ptemp;
 		ptemp.push_back(pt.x);
 		ptemp.push_back(pt.y);
 		ptemp.push_back(pt.z);
 		ptemp.push_back(1.0); //weights are set to 1
 		ptlist.push_back(ptemp);
+		if (pt.z < pBottom.z)
+			pBottom = pt;
+		if (pt.z > pTop.z)
+			pTop = pt;
 	}
+
+	//compute the largest eigen vector of the point cloud matrix 
+	MatrixXd meanval = pMatrix.colwise().mean();
+	RowVectorXd meanvecRow = meanval;
+	pMatrix.rowwise() -= meanvecRow;  //normalize the point cloud matrix
+	MatrixXd pCov = pMatrix.adjoint() * pMatrix; 
+	pCov = pCov.array() / (pMatrix.rows() - 1); //compute the covariance matrix
+	SelfAdjointEigenSolver<MatrixXd> eig(pCov);
+	MatrixXd eigVectors = eig.eigenvectors();
+
+	//initialize the cylinder with the positions computed from points
+	Vector3D pMean(meanvecRow(0), meanvecRow(1), meanvecRow(2)); //get the mean point
+	Vector3D cDir(eigVectors(0, 2), eigVectors(1, 2), eigVectors(2, 2)); //the last vector in the matrix is the principal vector
+	if (cDir.z < 0)
+		cDir = -cDir;
+	Vector3D cDirTop = pTop - pMean;
+	Vector3D cDirBottom = pBottom - pMean;
+	float nLengthTop = cDirTop.normalize();
+	float nLengthBottom = cDirBottom.normalize();
+	double cosineTop = Vector3D::dotProduct(cDir, cDirTop);
+	double cosineBottom = Vector3D::dotProduct(cDir, cDirBottom);
+	Vector3D pSource = pMean + nLengthBottom * cosineBottom * cDir;
+	Vector3D pTarget = pMean + nLengthTop * cosineTop * cDir;
+	Cylinder currentC = Cylinder(pSource, pTarget, simplified_skeleton_[trunkE].nRadius);
 
 	//non linear leastsquares adjustment
 	if (currentC.LeastSquaresFit(ptlist.begin(), ptlist.end())) 
@@ -1023,7 +1058,7 @@ void Skeleton::fit_trunk()
 		currentC.SetRadius(radiusAdjust);
 		double maxDis = -DBL_MAX;
 		std::vector<double> disList;
-		for (int np = 0; np < edgePoints; np++)
+		for (int np = 0; np < pCount; np++)
 		{
 			Vector3D pt(ptlist[np][0], ptlist[np][1], ptlist[np][2]);
 			//Compute the distance from current pt to the line formed by source and target vertex
@@ -1036,7 +1071,7 @@ void Skeleton::fit_trunk()
 		}
 		
 		//update the weights
-		for (int np = 0; np < edgePoints; np++)
+		for (int np = 0; np < pCount; np++)
 			ptlist[np][3] = 1.0 - disList[np] / maxDis;
 		
 		//conduct the second round of weighted least squares

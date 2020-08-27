@@ -37,4 +37,8 @@ target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${Boost_headers_DIR})
 
 
+INCLUDE_DIRECTORIES ( "$ENV{EIGEN_INCLUDE_DIRS}" )
+
+
+
 
