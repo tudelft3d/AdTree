@@ -54,7 +54,7 @@ This demo version provides a user interface with menus. Just clicking on the men
 ---
 
 ### Data
-Some test tree point clouds are provided in the 'data' folder.
+Some test tree point clouds are provided in the '[data](./data)' folder.
 
 **Note:** When testing on your point clouds, please make sure that:
  - your point cloud represents a single tree (i.e., the tree is segmented out from the background; no ground, no fence...);
