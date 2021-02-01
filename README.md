@@ -15,9 +15,9 @@ Please consider citing our paper if you use the code/program (or part of it).
 <img src="./resource/images/AdTree.jpg" width="800"/>
 <p align="center">3D Trees reconstructed from point clouds</p>
 
-### Textured rendering (both leaves and branches) coming soon ...
-
 ### Build and Run AdTree
+Prebuilt executables (for **macOS**, **Linux**, and **Windows**) can be downloaded [here](https://github.com/LiangliangNan/adtree/releases). 
+
 AdTree depends on some third-party libraries and most dependencies are included in the distribution except 
 [Boost](https://www.boost.org/). So you will need to have Boost install first. 
 
