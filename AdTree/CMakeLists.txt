@@ -32,11 +32,11 @@ if (APPLE)
         set(${VAR} ${_LIST} PARENT_SCOPE)
     endfunction()
 
-    resource(VERTEX_SHADERS ${ADTREE_ROOT}/resource/shaders Resources/shaders *.vert)
-    resource(FRAGMENT_SHADERS ${ADTREE_ROOT}/resource/shaders Resources/shaders *.frag)
+    resource(VERTEX_SHADERS ${ADTREE_ROOT}/resources/shaders Resources/shaders *.vert)
+    resource(FRAGMENT_SHADERS ${ADTREE_ROOT}/resources/shaders Resources/shaders *.frag)
 
     # This tells CMake where to find and install the ICON file
-    set(${PROJECT_NAME}_ICON ${ADTREE_ROOT}/resource/icons/adtree.icns)
+    set(${PROJECT_NAME}_ICON ${ADTREE_ROOT}/resources/icons/adtree.icns)
 
     #Append the new files to the resources file list
     list(APPEND ${PROJECT_NAME}_SOURCES ${${PROJECT_NAME}_ICON} ${VERTEX_SHADERS} ${FRAGMENT_SHADERS})
@@ -52,7 +52,7 @@ if (APPLE)
             INSTALL_RPATH "@executable_path/../Frameworks"
             MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}
             MACOSX_BUNDLE TRUE
-            MACOSX_BUNDLE_INFO_PLIST "${ADTREE_ROOT}/resource/Mac/adtree.plist"
+            MACOSX_BUNDLE_INFO_PLIST "${ADTREE_ROOT}/resources/Mac/adtree.plist"
             MACOSX_BUNDLE_ICON_FILE "adtree.icns"
             MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
             MACOSX_BUNDLE_LONG_VERSION_STRING "1.0"

@@ -45,15 +45,7 @@
 			<string>Editor</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
-				<string>bin</string>
 				<string>xyz</string>
-				<string>bxyz</string>
-				<string>vg</string>
-				<string>bvg</string>
-				<string>ply</string>
-				<string>laz</string>
-				<string>las</string>
-				<string>ptx</string>
 			</array>
 			<key>CFBundleTypeName</key>
 			<string>Point Cloud File</string>
@@ -66,28 +58,9 @@
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>obj</string>
-				<string>ply</string>
-				<string>sm</string>
-				<string>off</string>
-				<string>stl</string>
-				<string>trilist</string>
 			</array>
 			<key>CFBundleTypeName</key>
 			<string>Surface Mesh File</string>
-			<key>LSHandlerRank</key>
-			<string>Default</string>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleTypeExtensions</key>
-			<array>
-				<string>plm</string>
-				<string>pm</string>
-				<string>mesh</string>
-			</array>
-			<key>CFBundleTypeName</key>
-			<string>Polyhedral Mesh File</string>
 			<key>LSHandlerRank</key>
 			<string>Default</string>
 		</dict>
