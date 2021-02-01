@@ -60,4 +60,4 @@ add_subdirectory(AdTree)
 
 ## Resources
 # Copy resources dirs into our shadow build directory
-file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/resource DESTINATION ${CMAKE_BINARY_DIR} )
+file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/resource DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
