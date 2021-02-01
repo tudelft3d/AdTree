@@ -203,6 +203,11 @@ namespace easy3d {
 				return false;
 			}
 
+            vec3 p0(0.0f, 0.0f, 0.0f);
+            auto offset = graph->get_model_property<easy3d::vec3>("translation");
+            if (offset)
+                p0 = offset[0];
+
 			std::vector<Element> elements;
 
 			//-----------------------------------------------------
@@ -210,8 +215,14 @@ namespace easy3d {
 			// element vertex
             Element element_vertex("vertex", graph->n_vertices());
 
+            // v:point
+            auto vertices = graph->get_vertex_property<vec3>("v:point");
+            GenericProperty<vec3> points("vertex", "point", vertices.vector());
+            for (auto& p : points)
+                p += p0;
+            element_vertex.vec3_properties.push_back(points);
+
 			// attributes defined on element "vertex"
-            details::collect_vertex_properties(graph, element_vertex.vec3_properties);
             details::collect_vertex_properties(graph, element_vertex.float_properties);
             details::collect_vertex_properties(graph, element_vertex.int_properties);
             details::collect_vertex_properties(graph, element_vertex.int_list_properties);
@@ -250,7 +261,7 @@ namespace easy3d {
 				std::cout << "TODO: use binary format" << std::endl;
 
 			PlyWriter writer;
-			return writer.write(file_name, elements, "", binary);
+			return writer.write(file_name, elements, "Saved by Liangliang Nan (liangliang.nan@gmail.com)", binary);
 		}
 
 

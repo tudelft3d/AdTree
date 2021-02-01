@@ -222,7 +222,7 @@ void TreeViewer::export_skeleton() const {
     if (file_name.empty())
         return;
 
-    // convert the boost graph to easy3d::Graph (avoid modifing easy3d's GraphIO, or writing IO for boost graph)
+    // convert the boost graph to easy3d::Graph (avoid modifying easy3d's GraphIO, or writing IO for boost graph)
 
     std::unordered_map<SGraphVertexDescriptor, easy3d::Graph::Vertex>  vvmap;
     easy3d::Graph g;
@@ -241,6 +241,12 @@ void TreeViewer::export_skeleton() const {
         SGraphVertexDescriptor s = boost::source(*iter, skeleton);
         SGraphVertexDescriptor t = boost::target(*iter, skeleton);
         g.add_edge(vvmap[s], vvmap[t]);
+    }
+
+    auto offset = cloud()->get_model_property<easy3d::vec3>("translation");
+    if (offset) {
+        auto prop = g.model_property<easy3d::vec3>("translation");
+        prop[0] = offset[0];
     }
 
     if (easy3d::GraphIO::save(file_name, &g))
@@ -363,6 +369,8 @@ bool TreeViewer::create_skeleton_drawable(SkeletonType type)
         dVertex2 = target(*eIter, *skeleton);
         pVertex1 = (*skeleton)[dVertex1].cVert;
         pVertex2 = (*skeleton)[dVertex2].cVert;
+        assert(!easy3d::has_nan(pVertex1));
+        assert(!easy3d::has_nan(pVertex2));
 		graph_points.push_back(pVertex1);
 		graph_points.push_back(pVertex2);
 	}
@@ -427,7 +435,7 @@ bool TreeViewer::reconstruct_skeleton() {
     if (status) {
         auto offset = cloud()->get_model_property<easy3d::vec3>("translation");
         if (offset) {
-            auto prop = mesh->add_model_property<easy3d::vec3>("translation");
+            auto prop = mesh->model_property<easy3d::vec3>("translation");
             prop[0] = offset[0];
         }
         if (!branches())
@@ -458,6 +466,12 @@ bool TreeViewer::add_leaves() {
     if (skeleton_->reconstruct_leaves(mesh)) {
         if (!leaves())
             add_model(mesh);
+
+        auto offset = cloud()->get_model_property<easy3d::vec3>("translation");
+        if (offset) {
+            auto prop = mesh->model_property<easy3d::vec3>("translation");
+            prop[0] = offset[0];
+        }
 
         easy3d::TrianglesDrawable* leaves_drawable = mesh->triangles_drawable("surface");
         if (leaves_drawable) {

@@ -602,6 +602,14 @@ namespace easy3d {
     }
 
 
+    template <size_t N, class T>
+    inline bool has_nan(const Vec<N, T> &v) {
+        for (std::size_t i = 0; i < N; ++i) {
+            if (std::isnan(v[i]) || std::isinf(v[i]))
+                return true;
+        }
+        return false;
+    }
 
     //------------------------------- IO (input/output) ----------------------------
 
