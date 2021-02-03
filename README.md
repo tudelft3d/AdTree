@@ -12,7 +12,7 @@ Remote Sensing. 2019, 11(18), 2074.
 ```
 Please consider citing our paper if you use the code/program (or part of it).
 
-<img src="./resource/images/AdTree.jpg" width="800"/>
+<img src="./resources/images/AdTree.jpg" width="800"/>
 <p align="center">3D Trees reconstructed from point clouds</p>
 
 ### Build and Run AdTree
@@ -53,7 +53,7 @@ Don't have any experience with C/C++ programming? Have a look at [How to build A
 This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
 
 <p align="center"> 
-     <img src="./resource/images/ui.jpg" width="600"> 
+     <img src="./resources/images/ui.jpg" width="600"> 
 </p>
  
 
