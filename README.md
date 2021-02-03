@@ -27,7 +27,7 @@ compatible with the latest version.
 You need [CMake](https://cmake.org/download/) and of course a compiler to build AdTree:
 
 - CMake `>= 3.1`
-- a compiler that supports `>= C++11`
+- a compiler that supports `>= C++17`
 
 AdTree has been tested on macOS (Xcode >= 8), Windows (MSVC >=2015), and Linux (GCC >= 4.8, Clang >= 3.3). Machines 
 nowadays typically provide higher [supports](https://en.cppreference.com/w/cpp/compiler_support), so you should be 
