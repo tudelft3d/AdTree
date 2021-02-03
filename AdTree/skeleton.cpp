@@ -668,9 +668,6 @@ bool Skeleton::merge_vertices(Graph* i_Graph, SGraphVertexDescriptor i_dSource, 
 		}
 	}
 
-	if (easy3d::has_nan(pNew))
-		std::cerr << "the vertex merged is nan" << std::endl;
-
 	return true;
 }
 
@@ -1396,14 +1393,6 @@ void Skeleton::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, cons
         easy3d::vec3 t = points[np + 1];
         double r = radius[np];
 
-<<<<<<< Updated upstream
-=======
-		if (easy3d::has_nan(s) || easy3d::has_nan(t)) {
-			std::cerr << "file: " << __FILE__ << "\t" << "line: " << __LINE__ << "\n"
-				<< "\ts: " << s << ";  t: " << t << std::endl;
-		}
-
->>>>>>> Stashed changes
         //find a vector perpendicular to the direction
         const easy3d::vec3 offset = t - s;
         const easy3d::vec3 axis = easy3d::normalize(offset);
