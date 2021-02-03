@@ -38,8 +38,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include <fstream>
-
 
 using namespace boost;
 
@@ -249,24 +247,6 @@ bool Skeleton::smooth_skeleton()
                 tangentOfTarget = (simplified_skeleton_[childOfTarget].cVert - pSource).normalize();
             }
 
-			//if (easy3d::has_nan(tangentOfSorce))
-			//{
-			//	std::cerr << "tangent of source has nan" << std::endl;
-			//	easy3d::vec3 pParent = simplified_skeleton_[simplified_skeleton_[sourceV].nParent].cVert;
-			//	std::cout << "pParent: " << pParent.x << " " << pParent.y << " " << pParent.z << std::endl;
-			//	std::cout << "pSource: " << pSource.x << " " << pSource.y << " " << pSource.z << std::endl;
-			//	std::cout << "pTarget: " << pTarget.x << " " << pTarget.y << " " << pTarget.z << std::endl;
-			//}
-
-			//if (easy3d::has_nan(tangentOfTarget))
-			//{
-			//	std::cerr << "tangent of target has nan" << std::endl;
-			//	easy3d::vec3 pChild = simplified_skeleton_[currentPath[n_node + 2]].cVert;
-			//	std::cout << "pSource: " << pSource.x << " " << pSource.y << " " << pSource.z << std::endl;
-			//	std::cout << "pTarget: " << pTarget.x << " " << pTarget.y << " " << pTarget.z << std::endl;
-			//	std::cout << "pChild: " << pChild.x << " " << pChild.y << " " << pChild.z << std::endl;
-			//}
-
             tangentOfSorce *= branchlength;
             tangentOfTarget *= branchlength;
 
@@ -471,18 +451,6 @@ void Skeleton::merge_collapsed_edges()
 			}
 		}
 	}
-
-	//Graph& graph = *(const_cast<Graph*>(&simplified_skeleton_));
-	//std::pair<SGraphVertexIterator, SGraphVertexIterator> vi = boost::vertices(graph);
-	//for (SGraphVertexIterator vit = vi.first; vit != vi.second; ++vit) {
-	//	SGraphVertexDescriptor cur_vd = *vit;
-	//	easy3d::vec3 p = graph[cur_vd].cVert;
-	//	if (easy3d::has_nan(p))
-	//	{
-	//		std::cerr << "a nan vertex in simplified skeleton" << std::endl;
-	//		std::cout << "the subtree is:" << graph[cur_vd].lengthOfSubtree << std::endl;
-	//	}
-	//}
 
 	//update the length of subtree and weights for all vertices and edges
     compute_length_of_subtree(&simplified_skeleton_, RootV_);
