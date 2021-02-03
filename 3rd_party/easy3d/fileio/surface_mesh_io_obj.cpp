@@ -541,7 +541,11 @@ namespace easy3d {
 					else
 					{
 						// write vertex index and normal index
-						fprintf(out, " %d//%d", (*fvit).idx() + 1, (*fvit).idx() + 1);
+						if (normals) {
+							fprintf(out, " %d//%d", (*fvit).idx() + 1, (*fvit).idx() + 1);
+						} else {
+							fprintf(out, " %d", (*fvit).idx() + 1, (*fvit).idx() + 1);
+						}
 					}
 				} while (++fvit != fvend);
 				fprintf(out, "\n");
