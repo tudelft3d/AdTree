@@ -38,6 +38,8 @@
 #include <iostream>
 #include <algorithm>
 
+#include <fstream>
+
 
 using namespace boost;
 
@@ -172,6 +174,7 @@ bool Skeleton::extract_mst()
     compute_length_of_subtree(&MST_, RootV_);
     if (!quiet_)
         std::cout << "finish the minimum spanning tree extraction!" << std::endl;
+
 	return true;
 }
 
@@ -245,6 +248,25 @@ bool Skeleton::smooth_skeleton()
                 SGraphVertexDescriptor childOfTarget = currentPath[n_node + 2];
                 tangentOfTarget = (simplified_skeleton_[childOfTarget].cVert - pSource).normalize();
             }
+
+			//if (easy3d::has_nan(tangentOfSorce))
+			//{
+			//	std::cerr << "tangent of source has nan" << std::endl;
+			//	easy3d::vec3 pParent = simplified_skeleton_[simplified_skeleton_[sourceV].nParent].cVert;
+			//	std::cout << "pParent: " << pParent.x << " " << pParent.y << " " << pParent.z << std::endl;
+			//	std::cout << "pSource: " << pSource.x << " " << pSource.y << " " << pSource.z << std::endl;
+			//	std::cout << "pTarget: " << pTarget.x << " " << pTarget.y << " " << pTarget.z << std::endl;
+			//}
+
+			//if (easy3d::has_nan(tangentOfTarget))
+			//{
+			//	std::cerr << "tangent of target has nan" << std::endl;
+			//	easy3d::vec3 pChild = simplified_skeleton_[currentPath[n_node + 2]].cVert;
+			//	std::cout << "pSource: " << pSource.x << " " << pSource.y << " " << pSource.z << std::endl;
+			//	std::cout << "pTarget: " << pTarget.x << " " << pTarget.y << " " << pTarget.z << std::endl;
+			//	std::cout << "pChild: " << pChild.x << " " << pChild.y << " " << pChild.z << std::endl;
+			//}
+
             tangentOfSorce *= branchlength;
             tangentOfTarget *= branchlength;
 
@@ -290,6 +312,9 @@ bool Skeleton::smooth_skeleton()
             interpolatedPoints.push_back(point);
             interpolatedRadii.push_back(0);
         }
+
+		if (interpolatedPoints.size() < 2)
+			continue; // Too few points to construct a cylinder
 
         // add vertices
         std::vector<SGraphVertexDescriptor> vertices;
@@ -447,10 +472,23 @@ void Skeleton::merge_collapsed_edges()
 		}
 	}
 
+	//Graph& graph = *(const_cast<Graph*>(&simplified_skeleton_));
+	//std::pair<SGraphVertexIterator, SGraphVertexIterator> vi = boost::vertices(graph);
+	//for (SGraphVertexIterator vit = vi.first; vit != vi.second; ++vit) {
+	//	SGraphVertexDescriptor cur_vd = *vit;
+	//	easy3d::vec3 p = graph[cur_vd].cVert;
+	//	if (easy3d::has_nan(p))
+	//	{
+	//		std::cerr << "a nan vertex in simplified skeleton" << std::endl;
+	//		std::cout << "the subtree is:" << graph[cur_vd].lengthOfSubtree << std::endl;
+	//	}
+	//}
+
 	//update the length of subtree and weights for all vertices and edges
     compute_length_of_subtree(&simplified_skeleton_, RootV_);
     compute_graph_edges_weight(&simplified_skeleton_);
     compute_all_edges_radius(TrunkRadius_);
+
 	return;
 }
 
@@ -597,13 +635,18 @@ bool Skeleton::merge_vertices(Graph* i_Graph, SGraphVertexDescriptor i_dSource, 
 	//create a new vertex and merge two old vertices
 	SGraphVertexProp pV;
 	pV.nParent = (*i_Graph)[i_dTarget].nParent;
+	pV.lengthOfSubtree = std::max((*i_Graph)[i_dSource].lengthOfSubtree, (*i_Graph)[i_dTarget].lengthOfSubtree);
 	easy3d::vec3 pSource, pTarget, pNew;
 	pSource = (*i_Graph)[i_dSource].cVert;
 	pTarget = (*i_Graph)[i_dTarget].cVert;
-	pNew = i_wSource*pSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget*pTarget*(*i_Graph)[i_dTarget].lengthOfSubtree;
-	pNew = pNew / (i_wSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget*(*i_Graph)[i_dTarget].lengthOfSubtree);
+	if (pV.lengthOfSubtree == 0)
+		pNew = (i_wSource * pSource + i_wTarget * pTarget) / (i_wSource + i_wTarget);
+	else
+	{
+		pNew = i_wSource * pSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget * pTarget*(*i_Graph)[i_dTarget].lengthOfSubtree;
+		pNew = pNew / (i_wSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget * (*i_Graph)[i_dTarget].lengthOfSubtree);
+	}
 	pV.cVert = pNew;
-    pV.lengthOfSubtree = std::max((*i_Graph)[i_dSource].lengthOfSubtree, (*i_Graph)[i_dTarget].lengthOfSubtree);
 
 	// remove old vertices from cGraph
 	clear_vertex(i_dSource, *i_Graph);
@@ -624,6 +667,9 @@ bool Skeleton::merge_vertices(Graph* i_Graph, SGraphVertexDescriptor i_dSource, 
 			pEdge.nWeight = (pV.lengthOfSubtree + (*i_Graph)[parentV].lengthOfSubtree) / 2.0;
 		}
 	}
+
+	if (easy3d::has_nan(pNew))
+		std::cerr << "the vertex merged is nan" << std::endl;
 
 	return true;
 }
@@ -1289,15 +1335,15 @@ std::vector<Skeleton::Branch> Skeleton::get_branches_parameters() const {
     }
 
     for (SGraphVertexIterator vit = vi.first; vit != vi.second; ++vit) {
-        SGraphVertexDescriptor cur_vd = *vit;
-        SGraphVertexProp& vp = graph[cur_vd];
-        if (vp.visited)
-            continue;
-        auto deg = boost::degree(cur_vd, graph);
-        if (deg != 1)
-            continue;
+         SGraphVertexDescriptor cur_vd = *vit;
+         SGraphVertexProp& vp = graph[cur_vd];
+		 auto deg = boost::degree(cur_vd, graph);
+         if (vp.visited)
+             continue;
+         if (deg != 1)
+             continue;
 
-        Branch branch;
+         Branch branch;
 
          vp.visited = true;
          branch.points.push_back(vp.cVert);
@@ -1335,6 +1381,7 @@ void Skeleton::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, cons
 {
     const std::vector<double> &radius = branch.radii;
     const std::vector<easy3d::vec3> &points = branch.points;
+
     if (points.size() < 2) {
         std::cerr << "two few points to represent a generalized cylinder" << std::endl;
         return;
@@ -1349,6 +1396,14 @@ void Skeleton::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, cons
         easy3d::vec3 t = points[np + 1];
         double r = radius[np];
 
+<<<<<<< Updated upstream
+=======
+		if (easy3d::has_nan(s) || easy3d::has_nan(t)) {
+			std::cerr << "file: " << __FILE__ << "\t" << "line: " << __LINE__ << "\n"
+				<< "\ts: " << s << ";  t: " << t << std::endl;
+		}
+
+>>>>>>> Stashed changes
         //find a vector perpendicular to the direction
         const easy3d::vec3 offset = t - s;
         const easy3d::vec3 axis = easy3d::normalize(offset);
