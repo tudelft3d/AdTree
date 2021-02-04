@@ -101,6 +101,9 @@ namespace easy3d {
 
         // Global variables for all the windows
         float	alpha_;
+
+        // shadowing
+        bool shadowing_enabled_;
 	};
 
 }
