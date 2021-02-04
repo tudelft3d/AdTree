@@ -172,6 +172,7 @@ bool Skeleton::extract_mst()
     compute_length_of_subtree(&MST_, RootV_);
     if (!quiet_)
         std::cout << "finish the minimum spanning tree extraction!" << std::endl;
+
 	return true;
 }
 
@@ -245,6 +246,7 @@ bool Skeleton::smooth_skeleton()
                 SGraphVertexDescriptor childOfTarget = currentPath[n_node + 2];
                 tangentOfTarget = (simplified_skeleton_[childOfTarget].cVert - pSource).normalize();
             }
+
             tangentOfSorce *= branchlength;
             tangentOfTarget *= branchlength;
 
@@ -290,6 +292,9 @@ bool Skeleton::smooth_skeleton()
             interpolatedPoints.push_back(point);
             interpolatedRadii.push_back(0);
         }
+
+		if (interpolatedPoints.size() < 2)
+			continue; // Too few points to construct a cylinder
 
         // add vertices
         std::vector<SGraphVertexDescriptor> vertices;
@@ -451,6 +456,7 @@ void Skeleton::merge_collapsed_edges()
     compute_length_of_subtree(&simplified_skeleton_, RootV_);
     compute_graph_edges_weight(&simplified_skeleton_);
     compute_all_edges_radius(TrunkRadius_);
+
 	return;
 }
 
@@ -597,13 +603,18 @@ bool Skeleton::merge_vertices(Graph* i_Graph, SGraphVertexDescriptor i_dSource, 
 	//create a new vertex and merge two old vertices
 	SGraphVertexProp pV;
 	pV.nParent = (*i_Graph)[i_dTarget].nParent;
+	pV.lengthOfSubtree = std::max((*i_Graph)[i_dSource].lengthOfSubtree, (*i_Graph)[i_dTarget].lengthOfSubtree);
 	easy3d::vec3 pSource, pTarget, pNew;
 	pSource = (*i_Graph)[i_dSource].cVert;
 	pTarget = (*i_Graph)[i_dTarget].cVert;
-	pNew = i_wSource*pSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget*pTarget*(*i_Graph)[i_dTarget].lengthOfSubtree;
-	pNew = pNew / (i_wSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget*(*i_Graph)[i_dTarget].lengthOfSubtree);
+	if (pV.lengthOfSubtree == 0)
+		pNew = (i_wSource * pSource + i_wTarget * pTarget) / (i_wSource + i_wTarget);
+	else
+	{
+		pNew = i_wSource * pSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget * pTarget*(*i_Graph)[i_dTarget].lengthOfSubtree;
+		pNew = pNew / (i_wSource*(*i_Graph)[i_dSource].lengthOfSubtree + i_wTarget * (*i_Graph)[i_dTarget].lengthOfSubtree);
+	}
 	pV.cVert = pNew;
-    pV.lengthOfSubtree = std::max((*i_Graph)[i_dSource].lengthOfSubtree, (*i_Graph)[i_dTarget].lengthOfSubtree);
 
 	// remove old vertices from cGraph
 	clear_vertex(i_dSource, *i_Graph);
@@ -1289,15 +1300,15 @@ std::vector<Skeleton::Branch> Skeleton::get_branches_parameters() const {
     }
 
     for (SGraphVertexIterator vit = vi.first; vit != vi.second; ++vit) {
-        SGraphVertexDescriptor cur_vd = *vit;
-        SGraphVertexProp& vp = graph[cur_vd];
-        if (vp.visited)
-            continue;
-        auto deg = boost::degree(cur_vd, graph);
-        if (deg != 1)
-            continue;
+         SGraphVertexDescriptor cur_vd = *vit;
+         SGraphVertexProp& vp = graph[cur_vd];
+		 auto deg = boost::degree(cur_vd, graph);
+         if (vp.visited)
+             continue;
+         if (deg != 1)
+             continue;
 
-        Branch branch;
+         Branch branch;
 
          vp.visited = true;
          branch.points.push_back(vp.cVert);
@@ -1335,6 +1346,7 @@ void Skeleton::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, cons
 {
     const std::vector<double> &radius = branch.radii;
     const std::vector<easy3d::vec3> &points = branch.points;
+
     if (points.size() < 2) {
         std::cerr << "two few points to represent a generalized cylinder" << std::endl;
         return;

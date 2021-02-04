@@ -1396,7 +1396,7 @@ namespace easy3d {
                 for (auto d : m->triangles_drawables()) {
                     if (d->is_visible()) {
                         program->set_uniform("per_vertex_color", d->per_vertex_color() && d->color_buffer());
-                        program->set_uniform("default_color", idx == model_idx_ ? d->default_color() : vec3(0.8f, 0.8f, 0.8f));
+                        program->set_uniform("default_color", d->default_color());
                         d->draw(false);
                     }
                 }
