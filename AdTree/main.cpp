@@ -28,7 +28,6 @@
 
 
 #include <iostream>
-#include <filesystem>
 
 #include <easy3d/algo/remove_duplication.h>
 #include <easy3d/core/box.h>
@@ -45,7 +44,6 @@
 #include "tree_viewer.h"
 
 using namespace std;
-namespace fs = std::filesystem;
 
 
 int batch_mode(std::string xyz_file, std::string export_folder){
@@ -83,10 +81,10 @@ int batch_mode(std::string xyz_file, std::string export_folder){
     prop[0] = cloud->get_model_property<easy3d::dvec3>("translation")[0];
 
     // save branches model
-    fs::path branch_file = fs::path(export_folder) / branch_filename;
+    std::string branch_file = export_folder + easy3d::file_system::native_path_separator() + branch_filename;
     std::cout << "branch file will be saved at : " << branch_file << std::endl;
 
-    if (!easy3d::SurfaceMeshIO::save(branch_file.string(), mesh)){
+    if (!easy3d::SurfaceMeshIO::save(branch_file, mesh)){
         std::cerr << "Save branch_file failed" << std::endl;
         return EXIT_FAILURE;
     }
