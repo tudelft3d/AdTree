@@ -101,9 +101,6 @@ namespace easy3d {
 
         // Global variables for all the windows
         float	alpha_;
-        bool	movable_;
-		
-		float   menu_height_;
 	};
 
 }

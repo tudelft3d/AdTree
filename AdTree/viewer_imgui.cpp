@@ -55,7 +55,6 @@ namespace easy3d {
 	) 
 		: Viewer(title, samples, gl_major, gl_minor, full_screen, resizable, depth_bits, stencil_bits)
         , alpha_(0.8f)
-        , movable_(true)
 	{
 	}
 
@@ -221,7 +220,6 @@ namespace easy3d {
                 ImGui::MenuItem("About", nullptr, &show_about);
 				ImGui::EndMenu();
 			}
-			menu_height_ = ImGui::GetWindowHeight();
 			ImGui::EndMainMenuBar();
 		}
         ImGui::PopStyleVar();

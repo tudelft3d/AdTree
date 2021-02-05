@@ -1393,6 +1393,10 @@ void Skeleton::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, cons
         easy3d::vec3 t = points[np + 1];
         double r = radius[np];
 
+        if (easy3d::has_nan(s) || easy3d::has_nan(t))
+            std::cerr << "file: " << __FILE__ << "\t" << "line: " << __LINE__ << "\n"
+                      << "\ts: " << s << ";  t: " << t << std::endl;
+
         //find a vector perpendicular to the direction
         const easy3d::vec3 offset = t - s;
         const easy3d::vec3 axis = easy3d::normalize(offset);
@@ -1400,11 +1404,17 @@ void Skeleton::add_generalized_cylinder_to_model(easy3d::SurfaceMesh *mesh, cons
             easy3d::vec3 tmp = orthogonal(axis);
             tmp.normalize();
             perp = tmp;
+            if (easy3d::has_nan(perp))
+                std::cerr << "file: " << __FILE__ << "\t" << "line: " << __LINE__ << "\n"
+                          << "\tperp: " << perp << std::endl;
         }
         else {
             const easy3d::vec3 p = easy3d::Plane3(s, axis).projection(s + perp);
             perp = p - s;
             perp.normalize();
+            if (easy3d::has_nan(perp))
+                std::cerr << "file: " << __FILE__ << "\t" << "line: " << __LINE__ << "\n"
+                          << "\tperp: " << perp << std::endl;
         }
 
         const easy3d::vec3 p = s + perp * r;

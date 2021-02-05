@@ -12,12 +12,12 @@ Remote Sensing. 2019, 11(18), 2074.
 ```
 Please consider citing our paper if you use the code/program (or part of it).
 
-<img src="./resource/images/AdTree.jpg" width="800"/>
+<img src="./resources/images/AdTree.jpg" width="800"/>
 <p align="center">3D Trees reconstructed from point clouds</p>
 
-### Textured rendering (both leaves and branches) coming soon ...
-
 ### Build and Run AdTree
+Prebuilt executables (for **macOS**, **Linux**, and **Windows**) can be downloaded [here](https://github.com/LiangliangNan/adtree/releases). 
+
 AdTree depends on some third-party libraries and most dependencies are included in the distribution except 
 [Boost](https://www.boost.org/). So you will need to have Boost install first. 
 
@@ -27,7 +27,7 @@ compatible with the latest version.
 You need [CMake](https://cmake.org/download/) and of course a compiler to build AdTree:
 
 - CMake `>= 3.1`
-- a compiler that supports `>= C++11`
+- a compiler that supports `>= C++17`
 
 AdTree has been tested on macOS (Xcode >= 8), Windows (MSVC >=2015), and Linux (GCC >= 4.8, Clang >= 3.3). Machines 
 nowadays typically provide higher [supports](https://en.cppreference.com/w/cpp/compiler_support), so you should be 
@@ -39,15 +39,34 @@ There are many options to build AdTree. Choose one of the following (or whatever
 of AdTree. Then you should have obtained a usable project and just build. I recommend using
  [CLion](https://www.jetbrains.com/clion/) or [QtCreator](https://www.qt.io/product).
 - Option 2: Use CMake to generate project files for your IDE. Then load the project to your IDE and build.
-- Option 3: Use CMake to generate Makefiles and then `make` (on Linux/macOS) or `nmake`(on Windows with Microsoft 
-Visual Studio).
+- Option 3: Use CMake to generate Makefiles and then 
+  - on Linux/macOS : `make`
+
+    For example, on Linux or macOS, you can simply
+    ```
+    $ cd adtree
+    $ mkdir Release
+    $ cd Release
+    $ cmake -DCMAKE_BUILD_TYPE=Release ..
+    $ make
+    ```
+  - on Windows with Microsoft Visual Studio : `nmake` or `msbuild`.
+
+    For example, on Windows, you can simply
+    ```
+    $ cd adtree
+    $ mkdir Release
+    $ cd Release
+    $ cmake -DCMAKE_BUILD_TYPE=Release ..
+    $ msbuild adtree.sln /p:Configuration=Release
+    ```
 
 Don't have any experience with C/C++ programming? Have a look at [How to build AdTree step by step](./How_to_build.md).
 
 This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
 
 <p align="center"> 
-     <img src="./resource/images/ui.jpg" width="600"> 
+     <img src="./resources/images/ui.jpg" width="600"> 
 </p>
  
 

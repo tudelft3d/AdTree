@@ -470,9 +470,11 @@ namespace easy3d {
 				return false;
 			}
 
-			vec3 p0(0.0f, 0.0f, 0.0f);
-            auto offset = mesh->get_model_property<easy3d::vec3>("translation");
+			dvec3 p0(0.0f, 0.0f, 0.0f);
+            auto offset = mesh->get_model_property<easy3d::dvec3>("translation");
             if (offset) {
+				// Read translation offset.
+				// This allows to work with double-precision coordinates.
                 p0 = offset[0];
             }
 
@@ -541,7 +543,11 @@ namespace easy3d {
 					else
 					{
 						// write vertex index and normal index
-						fprintf(out, " %d//%d", (*fvit).idx() + 1, (*fvit).idx() + 1);
+						if (normals) {
+							fprintf(out, " %d//%d", (*fvit).idx() + 1, (*fvit).idx() + 1);
+						} else {
+							fprintf(out, " %d", (*fvit).idx() + 1, (*fvit).idx() + 1);
+						}
 					}
 				} while (++fvit != fvend);
 				fprintf(out, "\n");

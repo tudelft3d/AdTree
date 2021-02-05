@@ -174,7 +174,7 @@ namespace easy3d {
 
     void Shadow::shadow_map_pass(const std::vector<TrianglesDrawable*>& surfaces)
     {
-        static const std::string name = "shadow/shadow_generate";
+        static const std::string name = "shadow_generate";
         ShaderProgram* program = ShaderManager::get_program(name);
         if (!program) {
             std::vector<ShaderProgram::Attribute> attributes;
@@ -205,7 +205,7 @@ namespace easy3d {
 
 
     void Shadow::render_pass(const std::vector<TrianglesDrawable*>& surfaces) {
-        static const std::string name = "shadow/shadow_rendering";
+        static const std::string name = "shadow_rendering";
         ShaderProgram* program = ShaderManager::get_program(name);
         if (!program) {
             std::vector<ShaderProgram::Attribute> attributes = {
