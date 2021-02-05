@@ -192,9 +192,10 @@ clear()
     hprops_.resize(0);
     eprops_.resize(0);
     fprops_.resize(0);
-    mprops_.resize(0);
-
+    mprops_.clear();
     free_memory();
+
+    mprops_.resize(1);
 
     deleted_vertices_ = deleted_edges_ = deleted_faces_ = 0;
     garbage_ = false;

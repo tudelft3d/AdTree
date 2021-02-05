@@ -12,7 +12,7 @@ Remote Sensing. 2019, 11(18), 2074.
 ```
 Please consider citing our paper if you use the code/program (or part of it).
 
-<img src="./resources/images/AdTree.jpg" width="800"/>
+<img src="./resources/images/AdTree.jpg" width="800">
 <p align="center">3D Trees reconstructed from point clouds</p>
 
 ### Build and Run AdTree

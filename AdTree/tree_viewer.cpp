@@ -258,6 +258,11 @@ void TreeViewer::export_skeleton() const {
 
 
 void TreeViewer::draw() {
+    if (!shadowing_enabled_) {
+        Viewer::draw();
+        return;
+    }
+
     if (cloud()) {
         const easy3d::mat4& MVP = camera_->modelViewProjectionMatrix();
         // camera position is defined in world coordinate system.

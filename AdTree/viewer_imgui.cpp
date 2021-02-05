@@ -54,7 +54,7 @@ namespace easy3d {
 		int stencil_bits /* = 8 */
 	) 
 		: Viewer(title, samples, gl_major, gl_minor, full_screen, resizable, depth_bits, stencil_bits)
-        , alpha_(0.8f)
+        , alpha_(0.8f), shadowing_enabled_(false)
 	{
 	}
 
@@ -265,8 +265,11 @@ namespace easy3d {
                     case 2: ImGui::StyleColorsLight(); break;
                     }
                 }
-
                 ImGui::ColorEdit3("Background Color", background_color_.data(), ImGuiColorEditFlags_NoInputs);
+
+                if (ImGui::Checkbox("Showdowing", &shadowing_enabled_))
+                    update();
+
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
