@@ -1309,10 +1309,12 @@ std::vector<Skeleton::Branch> Skeleton::get_branches_parameters() const {
              continue;
 
          Branch branch;
-
          vp.visited = true;
-         branch.points.push_back(vp.cVert);
-         branch.radii.push_back(vp.radius);
+
+         if (branch.points.empty() || easy3d::distance(branch.points.back(), vp.cVert) >= epsilon<float>()) {
+             branch.points.push_back(vp.cVert);
+             branch.radii.push_back(vp.radius);
+         }
 
          bool reached_end = false;
          do {
@@ -1322,8 +1324,11 @@ std::vector<Skeleton::Branch> Skeleton::get_branches_parameters() const {
 
                  SGraphVertexProp& next_vp = graph[next_vd];
                  if (!next_vp.visited) {
-                     branch.points.push_back(next_vp.cVert);
-                     branch.radii.push_back(next_vp.radius);
+
+                     if (branch.points.empty() || easy3d::distance(branch.points.back(), next_vp.cVert) >= epsilon<float>()) {
+                         branch.points.push_back(next_vp.cVert);
+                         branch.radii.push_back(next_vp.radius);
+                     }
 
                      cur_vd = next_vd;
                      next_vp.visited = true;
@@ -1348,7 +1353,7 @@ void Skeleton::add_generalized_cylinder_to_model(SurfaceMesh *mesh, const Branch
     const std::vector<vec3> &points = branch.points;
 
     if (points.size() < 2) {
-        std::cerr << "two few points to represent a generalized cylinder" << std::endl;
+        //std::cerr << "two few points to represent a generalized cylinder" << std::endl;
         return;
     }
 
@@ -1359,11 +1364,10 @@ void Skeleton::add_generalized_cylinder_to_model(SurfaceMesh *mesh, const Branch
     {
         vec3 s = points[np];
         vec3 t = points[np + 1];
-        double r = radius[np];
-
         if (has_nan(s) || has_nan(t))
             std::cerr << "file: " << __FILE__ << "\t" << "line: " << __LINE__ << "\n"
                       << "\ts: " << s << ";  t: " << t << std::endl;
+        double r = radius[np];
 
         //find a vector perpendicular to the direction
         const vec3 offset = t - s;
@@ -1374,6 +1378,7 @@ void Skeleton::add_generalized_cylinder_to_model(SurfaceMesh *mesh, const Branch
             perp = tmp;
             if (has_nan(perp))
                 std::cerr << "file: " << __FILE__ << "\t" << "line: " << __LINE__ << "\n"
+                          << "\taxis: " << axis << std::endl
                           << "\tperp: " << perp << std::endl;
         }
         else {
@@ -1382,6 +1387,8 @@ void Skeleton::add_generalized_cylinder_to_model(SurfaceMesh *mesh, const Branch
             perp.normalize();
             if (has_nan(perp))
                 std::cerr << "file: " << __FILE__ << "\t" << "line: " << __LINE__ << "\n"
+                          << "\ts:    " << s << std::endl
+                          << "\taxis: " << axis << std::endl
                           << "\tperp: " << perp << std::endl;
         }
 
