@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
         std::cerr << "- no arguments to open the GUI." << std::endl;
         std::cerr << "      Example:" << std::endl;
         std::cerr << "          `AdTree`" << std::endl;
-        std::cerr << "- exactly two arguments to run AdTree in batch mode from the command line." << std::endl;
-        std::cerr << "      In batch mode, AdTree expects: `./AdTree <xyz_file_path> <output_folder>`" << std::endl;
+        std::cerr << "- exactly two arguments to run AdTree from the command line." << std::endl;
+        std::cerr << "      In the command line mode, AdTree expects: `./AdTree <xyz_file_path> <output_folder>`" << std::endl;
         std::cerr << "      The <output_folder> will be created if it doesn't exist." << std::endl;
         std::cerr << "      Example:" << std::endl;
         std::cerr << "          `AdTree \"./data/tree1.xyz\" \"./export_branches_models\"`" << std::endl;
