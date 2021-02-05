@@ -36,6 +36,7 @@
 #include <easy3d/fileio/point_cloud_io.h>
 #include <easy3d/fileio/graph_io.h>
 #include <easy3d/fileio/surface_mesh_io.h>
+#include <easy3d/algo/remove_duplication.h>
 #include <easy3d/util/file_system.h>
 
 #include "skeleton.h"
@@ -48,18 +49,37 @@ int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::st
     int count(0);
     for (std::size_t i=0; i<point_cloud_files.size(); ++i) {
         const std::string& xyz_file = point_cloud_files[i];
+        std::cout << "------------- " << i + 1 << "/" << point_cloud_files.size() << " -------------" << std::endl;
         std::cout << "processing xyz_file: " << xyz_file << std::endl;
-        if (file_system::is_directory(output_folder))
-            std::cout << "created output directory '" << output_folder << "'" << std::endl;
-        else {
-            std::cerr << "failed creating output directory" << std::endl;
-            return 0;
+
+        if (!file_system::is_directory(output_folder)) {
+            if (file_system::create_directory(output_folder))
+                std::cout << "created output directory '" << output_folder << "'" << std::endl;
+            else {
+                std::cerr << "failed creating output directory" << std::endl;
+                return 0;
+            }
         }
 
         // load point_cloud
         PointCloud *cloud = PointCloudIO::load(xyz_file);
-        if (cloud)
+        if (cloud) {
             std::cout << "cloud loaded. num vertices: " << cloud->n_vertices() << std::endl;
+
+            // compute bbox
+            Box3 box;
+            auto points = cloud->get_vertex_property<vec3>("v:point");
+            for (auto v : cloud->vertices())
+                box.add_point(points[v]);
+
+            // remove duplicated points
+            const float threshold = box.diagonal() * 0.001f;
+            const auto &points_to_remove = RemoveDuplication::apply(cloud, threshold);
+            for (auto v : points_to_remove)
+                cloud->delete_vertex(v);
+            cloud->garbage_collection();
+            std::cout << "after simplification. num vertices: " << cloud->n_vertices() << std::endl;
+        }
         else {
             std::cerr << "failed to load point cloud from '" << xyz_file << "'" << std::endl;
             continue;
@@ -103,7 +123,6 @@ int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::st
 
 
 int main(int argc, char *argv[]) {
-    argc = 2;
     if (argc == 1){
         TreeViewer viewer;
         viewer.run();
@@ -111,26 +130,25 @@ int main(int argc, char *argv[]) {
     }
     else if (argc == 3){
         std::string first_arg(argv[1]);
-        std::string second_arg(argv[2]);
-        std::string abs_output_dir = file_system::absolute_path(second_arg);
+        std::string output_dir(argv[2]);
+        if (file_system::is_file(output_dir)) {
+            std::cerr << "second argument cannot be an existing file name (it must be a directory)" << std::endl;
+            return EXIT_FAILURE;
+        }
 
         if (file_system::is_file(first_arg)) {
             std::vector<std::string> cloud_files = {first_arg};
-            return batch_reconstruct(cloud_files, file_system::parent_directory(abs_output_dir)) > 0;
+            return batch_reconstruct(cloud_files, output_dir) > 0;
         }
         else if (file_system::is_directory(first_arg)) {
-            if (file_system::is_file(second_arg)) {
-                std::cerr << "second argument must be a directory (instead of a file)" << std::endl;
-                return EXIT_FAILURE;
-            }
             std::vector<std::string> entries;
             file_system::get_directory_entries(first_arg, entries, false);
             std::vector<std::string> cloud_files;
             for (const auto& file_name : entries) {
                 if (file_name.size() > 3 && file_name.substr(file_name.size() - 3) == "xyz")
-                    cloud_files.push_back(file_name);
+                    cloud_files.push_back(first_arg + "/" + file_name);
             }
-            return batch_reconstruct(cloud_files, abs_output_dir);
+            return batch_reconstruct(cloud_files, output_dir);
         }
     }
     else {
@@ -138,7 +156,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "  - GUI mode." << std::endl;
         std::cerr << "         Command: ./AdTree" << std::endl;
         std::cerr << "  - Single processing mode (i.e., processing a single point cloud file)." << std::endl;
-        std::cerr << "         Command: ./AdTree <xyz_file_path> <result_file>" << std::endl;
+        std::cerr << "         Command: ./AdTree <xyz_file_path> <output_directory>" << std::endl;
         std::cerr << "  - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input \n";
         std::cerr << "    for reconstruction and the reconstructed models will be save in the output directory.\n";
         std::cerr << "         Command: ./AdTree <xyz_files_directory> <output_directory>" << std::endl;

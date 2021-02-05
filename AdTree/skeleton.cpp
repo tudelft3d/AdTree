@@ -1469,5 +1469,12 @@ bool Skeleton::extract_branch_surfaces(SurfaceMesh* result)
     for (const auto& branch : branches)
         add_generalized_cylinder_to_model(result, branch, slices);
 
+    // remove isolated vertices
+    for (auto v : result->vertices()) {
+        if (result->is_isolated(v))
+            result->delete_vertex(v);
+    }
+    result->garbage_collection();
+
     return true;
 }

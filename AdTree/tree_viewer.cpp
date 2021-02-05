@@ -415,7 +415,7 @@ bool TreeViewer::reconstruct_skeleton() {
                                  Choice::yes_no
         );
         if (answer == 1) {
-            const float threshold = cloud()->bounding_box().diagonal() * 0.001;
+            const float threshold = cloud()->bounding_box().diagonal() * 0.001f;
             const auto &points_to_remove = RemoveDuplication::apply(cloud(), threshold);
             for (auto v : points_to_remove)
                 cloud()->delete_vertex(v);
