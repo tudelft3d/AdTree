@@ -166,4 +166,4 @@ int main(int argc, char *argv[]) {
         std::cerr << "         Command: ./AdTree <xyz_files_directory> <output_directory>" << std::endl;
         return EXIT_FAILURE;
     }
-}ss
+}
