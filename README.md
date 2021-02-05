@@ -59,7 +59,20 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
 
 Don't have any experience with C/C++ programming? Have a look at [How to build AdTree step by step](./How_to_build.md).
 
-This demo version provides a user interface with menus. Just clicking on the menus will do all the magic :-)
+After obtaining the executable, AdTree can be run in three modes, which can be selected based 
+on arguments.
+  - GUI mode that provides a user interface with menus. You can double click to run the app or from the command 
+    using `./AdTree`.
+
+  - Single processing mode (i.e., processing a single point cloud file) from the command line using
+    ```
+    ./AdTree <xyz_file_path> <output_directory>
+    ```
+ - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input and the reconstructed 
+   models will be save in the output directory) from the command line using 
+    ```
+    ./AdTree <xyz_files_directory> <output_directory>
+    ```
 
 <p align="center"> 
      <img src="./resources/images/ui.jpg" width="600"> 
