@@ -162,8 +162,8 @@ int main(int argc, char *argv[]) {
         std::cerr << "  - Single processing mode (i.e., processing a single point cloud file)." << std::endl;
         std::cerr << "         Command: ./AdTree <xyz_file_path> <output_directory>" << std::endl;
         std::cerr << "  - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input \n";
-        std::cerr << "    for reconstruction and the reconstructed models will be save in the output directory.\n";
+        std::cerr << "    for reconstruction and the reconstructed models will be save in the output directory).\n";
         std::cerr << "         Command: ./AdTree <xyz_files_directory> <output_directory>" << std::endl;
         return EXIT_FAILURE;
     }
-}
+}ss
