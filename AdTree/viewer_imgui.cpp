@@ -26,11 +26,7 @@
 
 #include "viewer_imgui.h"
 
-#include <cmath>
 #include <iostream>
-
-#include <easy3d/core/point_cloud.h>
-#include <easy3d/core/surface_mesh.h>
 
 #include <3rd_party/imgui/misc/fonts/imgui_fonts_droid_sans.h>
 #include <3rd_party/imgui/imgui.h>

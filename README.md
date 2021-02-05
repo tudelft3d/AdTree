@@ -39,10 +39,8 @@ There are many options to build AdTree. Choose one of the following (or whatever
 of AdTree. Then you should have obtained a usable project and just build. I recommend using
  [CLion](https://www.jetbrains.com/clion/) or [QtCreator](https://www.qt.io/product).
 - Option 2: Use CMake to generate project files for your IDE. Then load the project to your IDE and build.
-- Option 3: Use CMake to generate Makefiles and then 
-  - on Linux/macOS : `make`
-
-    For example, on Linux or macOS, you can simply
+- Option 3: Use CMake to generate Makefiles and then build.
+  - on Linux or macOS:
     ```
     $ cd adtree
     $ mkdir Release
@@ -50,9 +48,7 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
     $ cmake -DCMAKE_BUILD_TYPE=Release ..
     $ make
     ```
-  - on Windows with Microsoft Visual Studio : `nmake` or `msbuild`.
-
-    For example, on Windows, you can simply
+  - on Windows with Microsoft Visual Studio:
     ```
     $ cd adtree
     $ mkdir Release

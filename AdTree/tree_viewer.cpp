@@ -49,20 +49,20 @@
 
 #include <iostream>
 
-
+using namespace easy3d;
 
 TreeViewer::TreeViewer()
     : ViewerImGui("AdTree")
     , skeleton_(nullptr)
 {
-    set_background_color(easy3d::vec3(1, 1, 1));
+    set_background_color(vec3(1, 1, 1));
 
-    camera_->setUpVector(easy3d::vec3(0, 0, 1));
-    camera_->setViewDirection(easy3d::vec3(-1, 0, 0));
+    camera_->setUpVector(vec3(0, 0, 1));
+    camera_->setViewDirection(vec3(-1, 0, 0));
     camera_->showEntireScene();
 
-    shadow_ = new easy3d::SoftShadow(camera());
-    shadow_->set_sample_pattern(easy3d::SoftShadow::SamplePattern(2));
+    shadow_ = new SoftShadow(camera());
+    shadow_->set_sample_pattern(SoftShadow::SamplePattern(2));
     shadow_->set_darkness(0.3f);
     shadow_->set_softness(0.9f);
     shadow_->set_background_color(background_color_);
@@ -88,31 +88,31 @@ void TreeViewer::cleanup() {
 }
 
 
-easy3d::PointCloud* TreeViewer::cloud() const {
+PointCloud* TreeViewer::cloud() const {
     if (models().empty())
         return nullptr;
     else
-        return dynamic_cast<easy3d::PointCloud*>(models()[0]);
+        return dynamic_cast<PointCloud*>(models()[0]);
 }
 
 
-easy3d::SurfaceMesh* TreeViewer::branches() const {
+SurfaceMesh* TreeViewer::branches() const {
     if (models().size() < 2)
         return nullptr;
     else
-        return dynamic_cast<easy3d::SurfaceMesh*>(models()[1]);
+        return dynamic_cast<SurfaceMesh*>(models()[1]);
 }
 
 
-easy3d::SurfaceMesh* TreeViewer::leaves() const {
+SurfaceMesh* TreeViewer::leaves() const {
     if (models().size() < 3)
         return nullptr;
     else
-        return dynamic_cast<easy3d::SurfaceMesh*>(models()[2]);
+        return dynamic_cast<SurfaceMesh*>(models()[2]);
 }
 
 
-bool TreeViewer::key_press_event(int key, int modifiers) 
+bool TreeViewer::key_press_event(int key, int modifiers)
 {
     if (key == GLFW_KEY_P && modifiers == GLFW_MOD_SHIFT) {
         if (!cloud())
@@ -126,7 +126,7 @@ bool TreeViewer::key_press_event(int key, int modifiers)
             return false;
 
 		//shift the visibility of the graph drawable
-        easy3d::LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
+        LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
         if (!graph_drawable)
             create_skeleton_drawable(ST_SMOOTHED);
         if (graph_drawable)
@@ -172,10 +172,10 @@ bool TreeViewer::open()
     models_.clear();
 
     const std::vector<std::string> filetypes = {"*.xyz"};
-    const std::string& file_name = easy3d::FileDialog::open(filetypes, std::string(""));
+    const std::string& file_name = FileDialog::open(filetypes, std::string(""));
 
     if (Viewer::open(file_name)) {
-        set_title("AdTree - " + easy3d::file_system::simple_name(cloud()->name()));
+        set_title("AdTree - " + file_system::simple_name(cloud()->name()));
         fit_screen();
         return true;
     }
@@ -184,18 +184,18 @@ bool TreeViewer::open()
 
 
 bool TreeViewer::save() const {
-    easy3d::SurfaceMesh* mesh = branches();
+    SurfaceMesh* mesh = branches();
     if (!mesh) {
         std::cerr << "branch model does not exist" << std::endl;
         return false;
     }
 
     const std::vector<std::string> filetypes = {"*.obj"};
-    const std::string& file_name = easy3d::FileDialog::save(filetypes, mesh->name());
+    const std::string& file_name = FileDialog::save(filetypes, mesh->name());
     if (file_name.empty())
         return false;
 
-    if (easy3d::SurfaceMeshIO::save(file_name, mesh)) {
+    if (SurfaceMeshIO::save(file_name, mesh)) {
         std::cout << "file successfully saved" << std::endl;
         return true;
     }
@@ -217,12 +217,12 @@ void TreeViewer::export_skeleton() const {
     }
 
     const std::vector<std::string> filetypes = {"*.ply"};
-    const std::string& initial_name = easy3d::file_system::base_name(cloud()->name()) + "_skeleton.ply";
-    const std::string& file_name = easy3d::FileDialog::save(filetypes, initial_name);
+    const std::string& initial_name = file_system::base_name(cloud()->name()) + "_skeleton.ply";
+    const std::string& file_name = FileDialog::save(filetypes, initial_name);
     if (file_name.empty())
         return;
 
-    // convert the boost graph to easy3d::Graph (avoid modifying easy3d's GraphIO, or writing IO for boost graph)
+    // convert the boost graph to Graph (avoid modifying easy3d's GraphIO, or writing IO for boost graph)
 
     std::unordered_map<SGraphVertexDescriptor, easy3d::Graph::Vertex>  vvmap;
     easy3d::Graph g;
@@ -231,7 +231,7 @@ void TreeViewer::export_skeleton() const {
     for (SGraphVertexIterator iter = vts.first; iter != vts.second; ++iter) {
         SGraphVertexDescriptor vd = *iter;
         if (boost::degree(vd, skeleton) != 0 ) { // ignore isolated vertices
-            const easy3d::vec3& vp = skeleton[vd].cVert;
+            const vec3& vp = skeleton[vd].cVert;
             vvmap[vd] = g.add_vertex(vp);
         }
     }
@@ -243,13 +243,13 @@ void TreeViewer::export_skeleton() const {
         g.add_edge(vvmap[s], vvmap[t]);
     }
 
-    auto offset = cloud()->get_model_property<easy3d::vec3>("translation");
+    auto offset = cloud()->get_model_property<vec3>("translation");
     if (offset) {
-        auto prop = g.model_property<easy3d::vec3>("translation");
+        auto prop = g.model_property<vec3>("translation");
         prop[0] = offset[0];
     }
 
-    if (easy3d::GraphIO::save(file_name, &g))
+    if (GraphIO::save(file_name, &g))
         std::cout << "Save skeleton done. You can use easy3d to visualize the skeleton, which is available at: \n"
                      "\thttps://github.com/LiangliangNan/Easy3D" << std::endl;
     else
@@ -264,22 +264,22 @@ void TreeViewer::draw() {
     }
 
     if (cloud()) {
-        const easy3d::mat4& MVP = camera_->modelViewProjectionMatrix();
+        const mat4& MVP = camera_->modelViewProjectionMatrix();
         // camera position is defined in world coordinate system.
-        const easy3d::vec3& wCamPos = camera_->position();
+        const vec3& wCamPos = camera_->position();
         // it can also be computed as follows:
         //const vec3& wCamPos = invMV * vec4(0, 0, 0, 1);
-        const easy3d::mat4& MV = camera_->modelViewMatrix();
-        const easy3d::vec4& wLightPos = inverse(MV) * easy3d::setting::light_position;
+        const mat4& MV = camera_->modelViewMatrix();
+        const vec4& wLightPos = inverse(MV) * setting::light_position;
 
         if (cloud()->is_visible()) {
-            easy3d::ShaderProgram* program = program = easy3d::ShaderManager::get_program("points_color");
+            ShaderProgram* program = program = ShaderManager::get_program("points_color");
             if (!program) {
-                std::vector<easy3d::ShaderProgram::Attribute> attributes;
-                attributes.push_back(easy3d::ShaderProgram::Attribute(easy3d::ShaderProgram::POSITION, "vtx_position"));
-                attributes.push_back(easy3d::ShaderProgram::Attribute(easy3d::ShaderProgram::COLOR, "vtx_color"));
-                attributes.push_back(easy3d::ShaderProgram::Attribute(easy3d::ShaderProgram::NORMAL, "vtx_normal"));
-                program = easy3d::ShaderManager::create_program_from_files("points_color", attributes);
+                std::vector<ShaderProgram::Attribute> attributes;
+                attributes.push_back(ShaderProgram::Attribute(ShaderProgram::POSITION, "vtx_position"));
+                attributes.push_back(ShaderProgram::Attribute(ShaderProgram::COLOR, "vtx_color"));
+                attributes.push_back(ShaderProgram::Attribute(ShaderProgram::NORMAL, "vtx_normal"));
+                program = ShaderManager::create_program_from_files("points_color", attributes);
             }
             if (program) {
                 program->bind();
@@ -303,14 +303,14 @@ void TreeViewer::draw() {
             }
         }
 
-        easy3d::LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
+        LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
         if (graph_drawable && graph_drawable->is_visible()) {
-            easy3d::ShaderProgram* program = easy3d::ShaderManager::get_program("lines_color");
+            ShaderProgram* program = ShaderManager::get_program("lines_color");
             if (!program) {
-                std::vector<easy3d::ShaderProgram::Attribute> attributes;
-                attributes.push_back(easy3d::ShaderProgram::Attribute(easy3d::ShaderProgram::POSITION, "vtx_position"));
-                attributes.push_back(easy3d::ShaderProgram::Attribute(easy3d::ShaderProgram::COLOR, "vtx_color"));
-                program = easy3d::ShaderManager::create_program_from_files("lines_color", attributes);
+                std::vector<ShaderProgram::Attribute> attributes;
+                attributes.push_back(ShaderProgram::Attribute(ShaderProgram::POSITION, "vtx_position"));
+                attributes.push_back(ShaderProgram::Attribute(ShaderProgram::COLOR, "vtx_color"));
+                program = ShaderManager::create_program_from_files("lines_color", attributes);
             }
             if (program) {
                 program->bind();
@@ -323,7 +323,7 @@ void TreeViewer::draw() {
         }
     }
 
-    std::vector<easy3d::TrianglesDrawable*> surfaces;
+    std::vector<TrianglesDrawable*> surfaces;
     if (branches() && branches()->is_visible()) {
         for (auto d : branches()->triangles_drawables())
             surfaces.push_back(d);
@@ -342,7 +342,7 @@ bool TreeViewer::create_skeleton_drawable(SkeletonType type)
         return false;
 
 	//get the skeleton graph to be rendered
-    const Graph* skeleton = nullptr;
+    const ::Graph* skeleton = nullptr;
     switch (type) {
     case ST_DELAUNAY:
         skeleton = &(skeleton_->get_delaunay());
@@ -364,30 +364,30 @@ bool TreeViewer::create_skeleton_drawable(SkeletonType type)
 	}
 
 	//create the vertices vector for rendering
-	std::vector<easy3d::vec3> graph_points;
+	std::vector<vec3> graph_points;
     std::pair<SGraphEdgeIterator, SGraphEdgeIterator> ep = edges(*skeleton);
 	SGraphVertexDescriptor dVertex1, dVertex2;
-	easy3d::vec3 pVertex1, pVertex2;
+	vec3 pVertex1, pVertex2;
 	for (SGraphEdgeIterator eIter = ep.first; eIter != ep.second; ++eIter)
 	{
         dVertex1 = source(*eIter, *skeleton);
         dVertex2 = target(*eIter, *skeleton);
         pVertex1 = (*skeleton)[dVertex1].cVert;
         pVertex2 = (*skeleton)[dVertex2].cVert;
-        assert(!easy3d::has_nan(pVertex1));
-        assert(!easy3d::has_nan(pVertex2));
+        assert(!has_nan(pVertex1));
+        assert(!has_nan(pVertex2));
 		graph_points.push_back(pVertex1);
 		graph_points.push_back(pVertex2);
 	}
 
 	//initialize the line drawable object;
-    easy3d::LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
+    LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
 	if (!graph_drawable)
         graph_drawable = cloud()->add_lines_drawable("graph");
 	graph_drawable->update_vertex_buffer(graph_points);
 	graph_drawable->set_per_vertex_color(false);
-	graph_drawable->set_default_color(easy3d::vec3(0.0f, 0.0f, 0.0f));
-	
+	graph_drawable->set_default_color(vec3(0.0f, 0.0f, 0.0f));
+
 	return true;
 }
 
@@ -397,8 +397,8 @@ bool TreeViewer::reconstruct_skeleton() {
         message_box("Performance hint!",
                     "You are runing a debug version of AdTree, which can be slow.\n"
                     "Please consider building and running AdTree in release mode.",
-                    easy3d::Type::warning,
-                    easy3d::Choice::ok
+                    Type::warning,
+                    Choice::ok
                     );
 #endif
 
@@ -411,12 +411,12 @@ bool TreeViewer::reconstruct_skeleton() {
         int answer = message_box("Robustness hint!",
                                  "The point cloud may has duplicated points. Remove duplication "
                                  "can improve robustness. Would like to do so?",
-                                 easy3d::Type::warning,
-                                 easy3d::Choice::yes_no
+                                 Type::warning,
+                                 Choice::yes_no
         );
         if (answer == 1) {
             const float threshold = cloud()->bounding_box().diagonal() * 0.001;
-            const auto &points_to_remove = easy3d::RemoveDuplication::apply(cloud(), threshold);
+            const auto &points_to_remove = RemoveDuplication::apply(cloud(), threshold);
             for (auto v : points_to_remove)
                 cloud()->delete_vertex(v);
             cloud()->garbage_collection();
@@ -429,18 +429,18 @@ bool TreeViewer::reconstruct_skeleton() {
         delete skeleton_;
     skeleton_ = new Skeleton;
 
-    easy3d::SurfaceMesh* mesh = branches();
+    SurfaceMesh* mesh = branches();
     if (mesh)
         mesh->clear();
     else {
-        mesh = new easy3d::SurfaceMesh;
-        mesh->set_name(easy3d::file_system::base_name(cloud()->name()) + "_branches.obj");
+        mesh = new SurfaceMesh;
+        mesh->set_name(file_system::base_name(cloud()->name()) + "_branches.obj");
     }
     bool status = skeleton_->reconstruct_branches(cloud(), mesh);
     if (status) {
-        auto offset = cloud()->get_model_property<easy3d::vec3>("translation");
+        auto offset = cloud()->get_model_property<vec3>("translation");
         if (offset) {
-            auto prop = mesh->model_property<easy3d::vec3>("translation");
+            auto prop = mesh->model_property<vec3>("translation");
             prop[0] = offset[0];
         }
         if (!branches())
@@ -460,28 +460,28 @@ bool TreeViewer::add_leaves() {
         return false;
     }
 
-    easy3d::SurfaceMesh* mesh = leaves();
+    SurfaceMesh* mesh = leaves();
     if (mesh)
         mesh->clear();
     else {
-        mesh = new easy3d::SurfaceMesh;
-        mesh->set_name(easy3d::file_system::base_name(cloud()->name()) + "_leaves.obj");
+        mesh = new SurfaceMesh;
+        mesh->set_name(file_system::base_name(cloud()->name()) + "_leaves.obj");
     }
 
     if (skeleton_->reconstruct_leaves(mesh)) {
         if (!leaves())
             add_model(mesh);
 
-        auto offset = cloud()->get_model_property<easy3d::vec3>("translation");
+        auto offset = cloud()->get_model_property<vec3>("translation");
         if (offset) {
-            auto prop = mesh->model_property<easy3d::vec3>("translation");
+            auto prop = mesh->model_property<vec3>("translation");
             prop[0] = offset[0];
         }
 
-        easy3d::TrianglesDrawable* leaves_drawable = mesh->triangles_drawable("surface");
+        TrianglesDrawable* leaves_drawable = mesh->triangles_drawable("surface");
         if (leaves_drawable) {
             leaves_drawable->set_per_vertex_color(false);
-            leaves_drawable->set_default_color(easy3d::vec3(0.50f, 0.83f, 0.20f));
+            leaves_drawable->set_default_color(vec3(0.50f, 0.83f, 0.20f));
         }
 
         return true;
