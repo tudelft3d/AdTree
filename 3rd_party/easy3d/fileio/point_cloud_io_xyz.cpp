@@ -73,8 +73,11 @@ namespace easy3d {
 				}
 			}
 
-            auto prop = cloud->add_model_property<vec3>("translation");
-            prop[0] = vec3(x0, y0, z0);
+			// Store first point coordinates as translation offset.
+			// This allows to work with double-precision coordinates.
+            easy3d::PointCloud::ModelProperty<easy3d::dvec3> prop = cloud->add_model_property<dvec3>("translation");
+            prop[0] = dvec3(x0, y0, z0);
+
 			return true;
 		}
 

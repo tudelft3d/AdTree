@@ -22,11 +22,15 @@ NOTE: There are usually many options to set up a development environment on each
 
 **Step #2. Build the software.** Choose **ONE** of the following (or whatever you are familiar with):
 
- - Option 1: Use any IDE that can directly handle CMakeLists files to open the `CMakeLists.txt` in the root directory of the software. Then you should have obtained a usable project and just build. I recommend using [CLion](https://www.jetbrains.com/clion/) or [QtCreator](https://www.qt.io/product).
+  - Option 1: Use any IDE that can directly handle CMakeLists files to open the `CMakeLists.txt` in the root directory of the software. Then you should have obtained a usable project and just build. I recommend using [CLion](https://www.jetbrains.com/clion/) or [QtCreator](https://www.qt.io/product).
 
- - Option 2: Use CMake to generate project files for your IDE. Then load the project to your IDE and build. 
+  - Option 2: Use CMake to generate project files for your IDE. Then load the project to your IDE and build. 
   
- - Option 3: Use CMake to generate Makefiles and then `make` (on Linux/macOS) or `nmake`(on Windows with Microsoft Visual Studio).
+  - Option 3: Use CMake to generate Makefiles. Then compile the project with:
+    - on Linux/macOS: `make`
+    - on Windows with Microsoft Visual Studio:
+      - `nmake`
+      - or `msbuild adtree.sln /p:Configuration=Release`
  
 For more details, see [How to Build a CMake-Based Project](https://preshing.com/20170511/how-to-build-a-cmake-based-project/).
 
