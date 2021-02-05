@@ -43,77 +43,105 @@
 
 using namespace easy3d;
 
-int batch_mode(std::string xyz_file, std::string export_folder){
-    std::cout << "xyz_file : " << xyz_file << std::endl;
-    std::cout << "export folder : " << export_folder << std::endl;
+// returns the number of processed input files.
+int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::string& output_folder) {
+    int count(0);
+    for (std::size_t i=0; i<point_cloud_files.size(); ++i) {
+        const std::string& xyz_file = point_cloud_files[i];
+        std::cout << "processing xyz_file: " << xyz_file << std::endl;
+        if (file_system::is_directory(output_folder))
+            std::cout << "created output directory '" << output_folder << "'" << std::endl;
+        else {
+            std::cerr << "failed creating output directory" << std::endl;
+            return 0;
+        }
 
-    if (!file_system::is_directory(export_folder)){
-        file_system::create_directory(export_folder);
+        // load point_cloud
+        PointCloud *cloud = PointCloudIO::load(xyz_file);
+        if (cloud)
+            std::cout << "cloud loaded. num vertices: " << cloud->n_vertices() << std::endl;
+        else {
+            std::cerr << "failed to load point cloud from '" << xyz_file << "'" << std::endl;
+            continue;
+        }
+
+        // reconstruct branches
+        SurfaceMesh *mesh = new SurfaceMesh;
+        const std::string &branch_filename = file_system::base_name(cloud->name()) + "_branches.obj";
+        mesh->set_name(branch_filename);
+
+        Skeleton *skeleton = new Skeleton();
+        bool status = skeleton->reconstruct_branches(cloud, mesh);
+        if (!status) {
+            std::cerr << "failed in reconstructing branches" << std::endl;
+            delete cloud;
+            delete mesh;
+            delete skeleton;
+            continue;
+        }
+
+        // copy translation property from point_cloud to surface_mesh
+        SurfaceMesh::ModelProperty<dvec3> prop = mesh->add_model_property<dvec3>("translation");
+        prop[0] = cloud->get_model_property<dvec3>("translation")[0];
+
+        // save branches model
+        const std::string branch_file = output_folder + "/" + branch_filename;
+        if (SurfaceMeshIO::save(branch_file, mesh)) {
+            std::cout << "model of branches saved to: " << branch_file << std::endl;
+            ++count;
+        }
+        else
+            std::cerr << "failed in saving the model of branches" << std::endl;
+
+        delete cloud;
+        delete mesh;
+        delete skeleton;
     }
 
-    // load point_cloud
-    PointCloud* cloud = PointCloudIO::load(xyz_file);
-    if (!cloud) {
-        std::cerr << "Cloud fails to load." << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    std::cout << "cloud loaded. num vertices: " << cloud->n_vertices() << std::endl;
-
-    // reconstruct branches
-    SurfaceMesh* mesh = new SurfaceMesh;
-    const std::string& branch_filename = file_system::base_name(cloud->name()) + "_branches.obj";
-    mesh->set_name(branch_filename);
-
-    Skeleton* skeleton_ = new Skeleton();
-    bool status = skeleton_->reconstruct_branches(cloud, mesh);
-
-    if (!status) {
-        std::cerr << "branch model does not exist" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    // copy translation property from point_cloud to surface_mesh
-    SurfaceMesh::ModelProperty<dvec3> prop = mesh->add_model_property<dvec3>("translation");
-    prop[0] = cloud->get_model_property<dvec3>("translation")[0];
-
-    // save branches model
-    auto branch_file = export_folder + "/" + branch_filename;
-    std::cout << "branch file will be saved at : " << branch_file << std::endl;
-
-    if (!SurfaceMeshIO::save(branch_file, mesh)){
-        std::cerr << "save branch_file failed" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    std::cout << "save branch model done." << std::endl;
-    return EXIT_SUCCESS;
+    return count;
 }
 
 
 int main(int argc, char *argv[]) {
+    argc = 2;
     if (argc == 1){
         TreeViewer viewer;
         viewer.run();
-
         return EXIT_SUCCESS;
     }
     else if (argc == 3){
-        std::string xyz_file(argv[1]);
-        std::string export_folder(argv[2]);
+        std::string first_arg(argv[1]);
+        std::string second_arg(argv[2]);
+        std::string abs_output_dir = file_system::absolute_path(second_arg);
 
-        return batch_mode(xyz_file, export_folder);
+        if (file_system::is_file(first_arg)) {
+            std::vector<std::string> cloud_files = {first_arg};
+            return batch_reconstruct(cloud_files, file_system::parent_directory(abs_output_dir)) > 0;
+        }
+        else if (file_system::is_directory(first_arg)) {
+            if (file_system::is_file(second_arg)) {
+                std::cerr << "second argument must be a directory (instead of a file)" << std::endl;
+                return EXIT_FAILURE;
+            }
+            std::vector<std::string> entries;
+            file_system::get_directory_entries(first_arg, entries, false);
+            std::vector<std::string> cloud_files;
+            for (const auto& file_name : entries) {
+                if (file_name.size() > 3 && file_name.substr(file_name.size() - 3) == "xyz")
+                    cloud_files.push_back(file_name);
+            }
+            return batch_reconstruct(cloud_files, abs_output_dir);
+        }
     }
     else {
-        std::cerr << "AdTree can be run in two modes, which can be selected based on arguments:" << std::endl;
-        std::cerr << "- no arguments to open the GUI." << std::endl;
-        std::cerr << "      Example:" << std::endl;
-        std::cerr << "          `AdTree`" << std::endl;
-        std::cerr << "- exactly two arguments to run AdTree from the command line." << std::endl;
-        std::cerr << "      In the command line mode, AdTree expects: `./AdTree <xyz_file_path> <output_folder>`" << std::endl;
-        std::cerr << "      The <output_folder> will be created if it doesn't exist." << std::endl;
-        std::cerr << "      Example:" << std::endl;
-        std::cerr << "          `AdTree \"./data/tree1.xyz\" \"./export_branches_models\"`" << std::endl;
+        std::cerr << "AdTree can be run in three modes, which can be selected based on arguments:" << std::endl;
+        std::cerr << "  - GUI mode." << std::endl;
+        std::cerr << "         Command: ./AdTree" << std::endl;
+        std::cerr << "  - Single processing mode (i.e., processing a single point cloud file)." << std::endl;
+        std::cerr << "         Command: ./AdTree <xyz_file_path> <result_file>" << std::endl;
+        std::cerr << "  - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input \n";
+        std::cerr << "    for reconstruction and the reconstructed models will be save in the output directory.\n";
+        std::cerr << "         Command: ./AdTree <xyz_files_directory> <output_directory>" << std::endl;
         return EXIT_FAILURE;
     }
 }
