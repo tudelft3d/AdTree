@@ -64,7 +64,7 @@ int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::st
         // load point_cloud
         PointCloud *cloud = PointCloudIO::load(xyz_file);
         if (cloud) {
-            std::cout << "cloud loaded. num vertices: " << cloud->n_vertices() << std::endl;
+            std::cout << "cloud loaded. num points: " << cloud->n_vertices() << std::endl;
 
             // compute bbox
             Box3 box;
@@ -78,7 +78,7 @@ int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::st
             for (auto v : points_to_remove)
                 cloud->delete_vertex(v);
             cloud->garbage_collection();
-            std::cout << "after simplification. num vertices: " << cloud->n_vertices() << std::endl;
+            std::cout << "removed too-close points. num points: " << cloud->n_vertices() << std::endl;
         }
         else {
             std::cerr << "failed to load point cloud from '" << xyz_file << "'" << std::endl;
@@ -123,6 +123,10 @@ int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::st
 
 
 int main(int argc, char *argv[]) {
+//    argc = 3;
+//    argv[1] = "/Users/lnan/Projects/adtree/data";
+//    argv[2] = "/Users/lnan/Projects/adtree/data-results";
+
     if (argc == 1){
         TreeViewer viewer;
         viewer.run();
@@ -148,7 +152,7 @@ int main(int argc, char *argv[]) {
                 if (file_name.size() > 3 && file_name.substr(file_name.size() - 3) == "xyz")
                     cloud_files.push_back(first_arg + "/" + file_name);
             }
-            return batch_reconstruct(cloud_files, output_dir);
+            return batch_reconstruct(cloud_files, output_dir) > 0;
         }
     }
     else {
