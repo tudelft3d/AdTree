@@ -127,12 +127,12 @@ int main(int argc, char *argv[]) {
 //    argv[1] = "/Users/lnan/Projects/adtree/data";
 //    argv[2] = "/Users/lnan/Projects/adtree/data-results";
 
-    if (argc == 1){
+    if (argc == 1) {
         TreeViewer viewer;
         viewer.run();
         return EXIT_SUCCESS;
     }
-    else if (argc == 3){
+    else if (argc == 3) {
         std::string first_arg(argv[1]);
         std::string output_dir(argv[2]);
         if (file_system::is_file(output_dir)) {
@@ -154,16 +154,19 @@ int main(int argc, char *argv[]) {
             }
             return batch_reconstruct(cloud_files, output_dir) > 0;
         }
+        else
+            std::cerr << "WARNING: unknown first argument (expecting either a point cloud file in *.xyz format or a\n"
+                         "\tdirectory containing *.xyz point cloud files)" << std::endl;
     }
-    else {
-        std::cerr << "AdTree can be run in three modes, which can be selected based on arguments:" << std::endl;
-        std::cerr << "  - GUI mode." << std::endl;
-        std::cerr << "         Command: ./AdTree" << std::endl;
-        std::cerr << "  - Single processing mode (i.e., processing a single point cloud file)." << std::endl;
-        std::cerr << "         Command: ./AdTree <xyz_file_path> <output_directory>" << std::endl;
-        std::cerr << "  - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input \n";
-        std::cerr << "    for reconstruction and the reconstructed models will be save in the output directory).\n";
-        std::cerr << "         Command: ./AdTree <xyz_files_directory> <output_directory>" << std::endl;
-        return EXIT_FAILURE;
-    }
+
+    std::cerr << "Usage: AdTree can be run in three modes, which can be selected based on arguments:" << std::endl;
+    std::cerr << "  - GUI mode." << std::endl;
+    std::cerr << "         Command: ./AdTree" << std::endl;
+    std::cerr << "  - Single processing mode (i.e., processing a single point cloud file)." << std::endl;
+    std::cerr << "         Command: ./AdTree <xyz_file_path> <output_directory>" << std::endl;
+    std::cerr << "  - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input \n";
+    std::cerr << "    for reconstruction and the reconstructed models will be save in the output directory).\n";
+    std::cerr << "         Command: ./AdTree <xyz_files_directory> <output_directory>" << std::endl;
+
+    return EXIT_FAILURE;
 }
