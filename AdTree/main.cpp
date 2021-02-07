@@ -131,32 +131,30 @@ int main(int argc, char *argv[]) {
         TreeViewer viewer;
         viewer.run();
         return EXIT_SUCCESS;
-    }
-    else if (argc == 3) {
+    } else if (argc == 3) {
         std::string first_arg(argv[1]);
-        std::string output_dir(argv[2]);
-        if (file_system::is_file(output_dir)) {
-            std::cerr << "second argument cannot be an existing file name (it must be a directory)" << std::endl;
-            return EXIT_FAILURE;
+        std::string second_arg(argv[2]);
+        if (file_system::is_file(second_arg))
+            std::cerr << "WARNING: second argument cannot be an existing file (expecting a directory)." << std::endl;
+        else {
+            std::string output_dir = second_arg;
+            if (file_system::is_file(first_arg)) {
+                std::vector<std::string> cloud_files = {first_arg};
+                return batch_reconstruct(cloud_files, output_dir) > 0;
+            } else if (file_system::is_directory(first_arg)) {
+                std::vector<std::string> entries;
+                file_system::get_directory_entries(first_arg, entries, false);
+                std::vector<std::string> cloud_files;
+                for (const auto &file_name : entries) {
+                    if (file_name.size() > 3 && file_name.substr(file_name.size() - 3) == "xyz")
+                        cloud_files.push_back(first_arg + "/" + file_name);
+                }
+                return batch_reconstruct(cloud_files, output_dir) > 0;
+            } else
+                std::cerr
+                        << "WARNING: unknown first argument (expecting either a point cloud file in *.xyz format or a\n"
+                           "\tdirectory containing *.xyz point cloud files)." << std::endl;
         }
-
-        if (file_system::is_file(first_arg)) {
-            std::vector<std::string> cloud_files = {first_arg};
-            return batch_reconstruct(cloud_files, output_dir) > 0;
-        }
-        else if (file_system::is_directory(first_arg)) {
-            std::vector<std::string> entries;
-            file_system::get_directory_entries(first_arg, entries, false);
-            std::vector<std::string> cloud_files;
-            for (const auto& file_name : entries) {
-                if (file_name.size() > 3 && file_name.substr(file_name.size() - 3) == "xyz")
-                    cloud_files.push_back(first_arg + "/" + file_name);
-            }
-            return batch_reconstruct(cloud_files, output_dir) > 0;
-        }
-        else
-            std::cerr << "WARNING: unknown first argument (expecting either a point cloud file in *.xyz format or a\n"
-                         "\tdirectory containing *.xyz point cloud files)" << std::endl;
     }
 
     std::cerr << "Usage: AdTree can be run in three modes, which can be selected based on arguments:" << std::endl;
