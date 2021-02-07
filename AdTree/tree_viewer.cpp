@@ -186,7 +186,7 @@ bool TreeViewer::open()
 bool TreeViewer::save() const {
     SurfaceMesh* mesh = branches();
     if (!mesh) {
-        std::cerr << "branch model does not exist" << std::endl;
+        std::cerr << "model of branches does not exist" << std::endl;
         return false;
     }
 
@@ -196,17 +196,19 @@ bool TreeViewer::save() const {
         return false;
 
     if (SurfaceMeshIO::save(file_name, mesh)) {
-        std::cout << "file successfully saved" << std::endl;
+        std::cout << "successfully saved the model of branches to file" << std::endl;
         return true;
     }
-    else
+    else {
+        std::cerr << "failed saving the model of branches" << std::endl;
         return false;
+    }
 }
 
 
 void TreeViewer::export_skeleton() const {
     if (!branches() || !skeleton_) {
-        std::cerr << "branch model does not exist" << std::endl;
+        std::cerr << "model of skeleton does not exist" << std::endl;
         return;
     }
 
@@ -250,10 +252,29 @@ void TreeViewer::export_skeleton() const {
     }
 
     if (GraphIO::save(file_name, &g))
-        std::cout << "Save skeleton done. You can use easy3d to visualize the skeleton, which is available at: \n"
-                     "\thttps://github.com/LiangliangNan/Easy3D" << std::endl;
+        std::cout << "successfully saved the model of skeleton to file. You can use Easy3D to visualize the skeleton,\n"
+                     "\twhich can be downloaded from: https://github.com/LiangliangNan/Easy3D" << std::endl;
     else
-        std::cerr << "Save skeleton failed" << std::endl;
+        std::cerr << "failed saving the model of skeleton" << std::endl;
+}
+
+
+void TreeViewer::export_leaves() const {
+    SurfaceMesh* mesh = leaves();
+    if (!mesh) {
+        std::cerr << "model of leaves does not exist" << std::endl;
+        return;
+    }
+
+    const std::vector<std::string> filetypes = {"*.obj"};
+    const std::string& file_name = FileDialog::save(filetypes, mesh->name());
+    if (file_name.empty())
+        return;
+
+    if (SurfaceMeshIO::save(file_name, mesh))
+        std::cout << "successfully saved the model of leaves to file" << std::endl;
+    else
+        std::cerr << "failed saving the model of leaves" << std::endl;
 }
 
 

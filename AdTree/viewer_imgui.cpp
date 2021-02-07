@@ -236,6 +236,8 @@ namespace easy3d {
                 save();
             if (ImGui::MenuItem("Export skeleton ..."))
                 export_skeleton();
+            if (ImGui::MenuItem("Export leaves ..."))
+                export_leaves();
 
             ImGui::Separator();
             if (ImGui::MenuItem("Quit", "Alt+F4"))

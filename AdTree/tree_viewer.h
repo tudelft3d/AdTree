@@ -68,6 +68,7 @@ protected:
     bool save() const override;
 
     void export_skeleton() const override;
+    void export_leaves() const override;
 
     bool reconstruct_skeleton() override;
     bool add_leaves() override;
