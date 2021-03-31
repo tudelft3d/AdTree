@@ -245,9 +245,9 @@ void TreeViewer::export_skeleton() const {
         g.add_edge(vvmap[s], vvmap[t]);
     }
 
-    auto offset = cloud()->get_model_property<vec3>("translation");
+    auto offset = cloud()->get_model_property<dvec3>("translation");
     if (offset) {
-        auto prop = g.model_property<vec3>("translation");
+        auto prop = g.model_property<dvec3>("translation");
         prop[0] = offset[0];
     }
 
@@ -459,9 +459,9 @@ bool TreeViewer::reconstruct_skeleton() {
     }
     bool status = skeleton_->reconstruct_branches(cloud(), mesh);
     if (status) {
-        auto offset = cloud()->get_model_property<vec3>("translation");
+        auto offset = cloud()->get_model_property<dvec3>("translation");
         if (offset) {
-            auto prop = mesh->model_property<vec3>("translation");
+            auto prop = mesh->model_property<dvec3>("translation");
             prop[0] = offset[0];
         }
         if (!branches())
@@ -493,9 +493,9 @@ bool TreeViewer::add_leaves() {
         if (!leaves())
             add_model(mesh);
 
-        auto offset = cloud()->get_model_property<vec3>("translation");
+        auto offset = cloud()->get_model_property<dvec3>("translation");
         if (offset) {
-            auto prop = mesh->model_property<vec3>("translation");
+            auto prop = mesh->model_property<dvec3>("translation");
             prop[0] = offset[0];
         }
 

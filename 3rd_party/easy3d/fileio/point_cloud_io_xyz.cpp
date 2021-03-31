@@ -65,7 +65,6 @@ namespace easy3d {
 			while (!input.eof()) {
                 in.get_line();
 				if (in.current_line()[0] != '#') {
-                    double x, y, z;
                     in >> x >> y >> z;
 					if (!in.fail()) {
                         cloud->add_vertex(vec3(x-x0, y-y0, z-z0));
@@ -77,6 +76,7 @@ namespace easy3d {
 			// This allows to work with double-precision coordinates.
             easy3d::PointCloud::ModelProperty<easy3d::dvec3> prop = cloud->add_model_property<dvec3>("translation");
             prop[0] = dvec3(x0, y0, z0);
+            std::cout << "input point cloud translated by [" << -prop[0] << "]" << std::endl;
 
 			return true;
 		}

@@ -232,11 +232,11 @@ namespace easy3d {
         {
             if (ImGui::MenuItem("Open", "Ctrl+O"))
                 open();
-            if (ImGui::MenuItem("Save ...", "Ctrl+S"))
+            if (ImGui::MenuItem("Save branches ...", "Ctrl+S"))
                 save();
-            if (ImGui::MenuItem("Export skeleton ..."))
+            if (ImGui::MenuItem("Save skeleton ..."))
                 export_skeleton();
-            if (ImGui::MenuItem("Export leaves ..."))
+            if (ImGui::MenuItem("Save leaves ..."))
                 export_leaves();
 
             ImGui::Separator();

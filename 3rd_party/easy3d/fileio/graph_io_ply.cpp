@@ -203,8 +203,8 @@ namespace easy3d {
 				return false;
 			}
 
-            vec3 p0(0.0f, 0.0f, 0.0f);
-            auto offset = graph->get_model_property<easy3d::vec3>("translation");
+            dvec3 p0(0.0f, 0.0f, 0.0f);
+            auto offset = graph->get_model_property<easy3d::dvec3>("translation");
             if (offset)
                 p0 = offset[0];
 
@@ -219,8 +219,9 @@ namespace easy3d {
             auto vertices = graph->get_vertex_property<vec3>("v:point");
             GenericProperty<vec3> points("vertex", "point", vertices.vector());
             for (auto& p : points)
-                p += p0;
+                p += vec3(p0.x, p0.y, p0.z);
             element_vertex.vec3_properties.push_back(points);
+            std::cout << "graph model translated by [" << p0 << "]" << std::endl;
 
 			// attributes defined on element "vertex"
             details::collect_vertex_properties(graph, element_vertex.float_properties);

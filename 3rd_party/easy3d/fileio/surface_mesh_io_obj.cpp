@@ -488,6 +488,7 @@ namespace easy3d {
 				const vec3& p = points[*vit];
 				fprintf(out, "v %.10f %.10f %.10f\n", p[0] + p0[0], p[1] + p0[1], p[2] + p0[2]);
 			}
+            std::cout << "surface mesh model translated by [" << p0 << "]" << std::endl;
 
 			//normals
 			SurfaceMesh::VertexProperty<vec3> normals = mesh->get_vertex_property<vec3>("v:normal");
