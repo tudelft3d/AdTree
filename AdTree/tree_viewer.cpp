@@ -212,7 +212,12 @@ void TreeViewer::export_skeleton() const {
         return;
     }
 
+#if 0
     const ::Graph& skeleton = skeleton_->get_simplified_skeleton();
+#else
+    const ::Graph& skeleton = skeleton_->get_smoothed_skeleton();
+#endif
+
     if (boost::num_edges(skeleton) == 0) {
         std::cerr << "skeleton has 0 edges" << std::endl;
         return;
@@ -252,7 +257,7 @@ void TreeViewer::export_skeleton() const {
     }
 
     if (GraphIO::save(file_name, &g))
-        std::cout << "successfully saved the model of skeleton to file. You can use Easy3D to visualize the skeleton,\n"
+        std::cout << "successfully saved the skeleton to a graph file. The graph can be visualized using Easy3D,\n"
                      "\twhich can be downloaded from: https://github.com/LiangliangNan/Easy3D" << std::endl;
     else
         std::cerr << "failed saving the model of skeleton" << std::endl;
