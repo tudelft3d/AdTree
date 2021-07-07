@@ -816,33 +816,33 @@ std::vector<Vector3D> Skeleton::centralize_main_points(PointCloud* cloud)
 	{
 		Vector3D pCurrent = Points_[j];
 		double distance = (pCurrent - RootPos_).normalize();
-		if (distance != 0) // the point is not the root
-		{
-			//the point doesn't lie far from the root
-			if (distance < epsilon*BoundingDistance_) 
-			{
-				double ptDensity = densityList[j];
-				double dendiff = 0.0;
-				Vector3D pSum(0, 0, 0);
-				double threshold = TrunkRadius_ * (1 - distance / BoundingDistance_);
-				KDtree_->queryRange(pCurrent, threshold, true);
-				int neighbourSize = KDtree_->getNOfFoundNeighbours();
-				for (int np = 0; np < neighbourSize; np++)
-				{
-					int pointIndex = KDtree_->getNeighbourPositionIndex(np);
-					double currentDensity = densityList[pointIndex];
-					Vector3D pCurrent = Points_[pointIndex];
-					pSum += pCurrent;
-					dendiff = abs(currentDensity - ptDensity);
-				}
-				dendiff = dendiff / neighbourSize;
-				pSum = pSum / neighbourSize;
-				if (dendiff < 0.6)
-				{
-					vertices.push_back(pSum);
-					continue;
-				}
-			}
+        if (distance != 0) // the point is not the root
+        {
+            //the point doesn't lie far from the root
+            if (distance < epsilon * BoundingDistance_) {
+                double ptDensity = densityList[j];
+                double dendiff = 0.0;
+                Vector3D pSum(0, 0, 0);
+                double threshold = TrunkRadius_ * (1 - distance / BoundingDistance_);
+                KDtree_->queryRange(pCurrent, threshold, true);
+                int neighbourSize = KDtree_->getNOfFoundNeighbours();
+                for (int np = 0; np < neighbourSize; np++) {
+                    int pointIndex = KDtree_->getNeighbourPositionIndex(np);
+                    double currentDensity = densityList[pointIndex];
+                    Vector3D pCurrent = Points_[pointIndex];
+                    pSum += pCurrent;
+                    dendiff += abs(currentDensity - ptDensity);
+                }
+                // compute average
+                dendiff = dendiff / neighbourSize;
+                // (looks weird but we do need this) kind of normalization
+                dendiff = dendiff / neighbourSize;
+                pSum = pSum / neighbourSize;
+                if (dendiff < 0.6) {
+                    vertices.push_back(pSum);
+                    continue;
+                }
+            }
 		}
 		vertices.push_back(pCurrent);
 	}
