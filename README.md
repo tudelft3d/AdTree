@@ -10,10 +10,9 @@ Shenglan Du, Roderik Lindenbergh, Hugo Ledoux, Jantien Stoter, and Liangliang Na
 AdTree: Accurate, Detailed, and Automatic Modelling of Laser-Scanned Trees.
 Remote Sensing. 2019, 11(18), 2074.
 ```
-Please consider citing our paper if you use the code/program (or part of it).
 
 <img src="./resources/images/AdTree.jpg" width="800">
-<p align="center">3D Trees reconstructed from point clouds</p>
+<p align="center">3D tree models reconstructed from point clouds</p>
 
 ### Build and Run AdTree
 Prebuilt executables (for **macOS**, **Linux**, and **Windows**) can be downloaded 
@@ -88,6 +87,23 @@ Some test tree point clouds are provided in the '[data](./data)' folder.
 **Note:** When testing on your point clouds, please make sure that:
  - your point cloud represents a single tree (i.e., the tree is segmented out from the background; no ground, no fence...);
  - the tree has an upright orientation (i.e., with Z-axis pointing up).
+
+---
+### Citation
+If you use the code/program (or part) of AdTree in a scientific work, please cite our paper:
+
+```bibtex
+@article{du2019adtree,
+  title={AdTree: Accurate, detailed, and automatic modelling of laser-scanned trees},
+  author={Du, Shenglan and Lindenbergh, Roderik and Ledoux, Hugo and Stoter, Jantien and Nan, Liangliang},
+  journal={Remote Sensing},
+  volume={11},
+  number={18},
+  pages={2074},
+  year={2019},
+  publisher={Multidisciplinary Digital Publishing Institute}
+}
+```
 
 ---
 
