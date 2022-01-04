@@ -91,7 +91,7 @@ endif()
 
 add_library(3rd_glfw ${glfw_SOURCES} ${glfw_HEADERS})
 set_target_properties(3rd_glfw PROPERTIES
-                      OUTPUT_NAME ${GLFW_LIB_NAME}
+#                      OUTPUT_NAME ${GLFW_LIB_NAME}
                       VERSION ${GLFW_VERSION}
                       SOVERSION ${GLFW_VERSION_MAJOR}
                       POSITION_INDEPENDENT_CODE ON
