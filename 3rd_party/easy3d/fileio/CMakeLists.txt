@@ -30,7 +30,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "3rd_party/easy3d")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_easy3d_INCLUDE_DIR})
 
-target_link_libraries(${PROJECT_NAME} 3rd_core 3rd_rply)
+target_link_libraries(${PROJECT_NAME} 3rd_core 3rd_rply 3rd_util)
 
 if (MSVC)
     target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_DEPRECATE)
