@@ -89,19 +89,19 @@ if (${CMAKE_C_COMPILER_ID} STREQUAL GNU OR ${CMAKE_C_COMPILER_ID} STREQUAL Clang
         COMPILE_FLAGS -Wdeclaration-after-statement)
 endif()
 
-add_library(glfw ${glfw_SOURCES} ${glfw_HEADERS})
-set_target_properties(glfw PROPERTIES
+add_library(3rd_glfw ${glfw_SOURCES} ${glfw_HEADERS})
+set_target_properties(3rd_glfw PROPERTIES
                       OUTPUT_NAME ${GLFW_LIB_NAME}
                       VERSION ${GLFW_VERSION}
                       SOVERSION ${GLFW_VERSION_MAJOR}
                       POSITION_INDEPENDENT_CODE ON
                       FOLDER "3rd_party")
 
-target_compile_definitions(glfw PRIVATE _GLFW_USE_CONFIG_H)
-target_include_directories(glfw PUBLIC
+target_compile_definitions(3rd_glfw PRIVATE _GLFW_USE_CONFIG_H)
+target_include_directories(3rd_glfw PUBLIC
                            "$<BUILD_INTERFACE:${GLFW_SOURCE_DIR}/include>"
                            "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>")
-target_include_directories(glfw PRIVATE
+target_include_directories(3rd_glfw PRIVATE
                            "${GLFW_SOURCE_DIR}/src"
                            "${GLFW_BINARY_DIR}/src"
                            ${glfw_INCLUDE_DIRS})
@@ -110,11 +110,11 @@ target_include_directories(glfw PRIVATE
 # the inclusion of stddef.h (by glfw3.h), which is itself included before
 # win32_platform.h.  We define them here until a saner solution can be found
 # NOTE: MinGW-w64 and Visual C++ do /not/ need this hack.
-target_compile_definitions(glfw PRIVATE
+target_compile_definitions(3rd_glfw PRIVATE
                            "$<$<BOOL:${MINGW}>:UNICODE;WINVER=0x0501>")
 
 # Enable a reasonable set of warnings (no, -Wextra is not reasonable)
-target_compile_options(glfw PRIVATE
+target_compile_options(3rd_glfw PRIVATE
                        "$<$<C_COMPILER_ID:Clang>:-Wall>"
                        "$<$<C_COMPILER_ID:GNU>:-Wall>")
 
@@ -122,37 +122,37 @@ if (BUILD_SHARED_LIBS)
     if (WIN32)
         if (MINGW)
             # Remove the lib prefix on the DLL (but not the import library
-            set_target_properties(glfw PROPERTIES PREFIX "")
+            set_target_properties(3rd_glfw PROPERTIES PREFIX "")
 
             # Add a suffix to the import library to avoid naming conflicts
-            set_target_properties(glfw PROPERTIES IMPORT_SUFFIX "dll.a")
+            set_target_properties(3rd_glfw PROPERTIES IMPORT_SUFFIX "dll.a")
         else()
             # Add a suffix to the import library to avoid naming conflicts
-            set_target_properties(glfw PROPERTIES IMPORT_SUFFIX "dll.lib")
+            set_target_properties(3rd_glfw PROPERTIES IMPORT_SUFFIX "dll.lib")
         endif()
     elseif (APPLE)
         # Add -fno-common to work around a bug in Apple's GCC
-        target_compile_options(glfw PRIVATE "-fno-common")
+        target_compile_options(3rd_glfw PRIVATE "-fno-common")
 
         set_target_properties(glfw PROPERTIES
                               INSTALL_NAME_DIR "lib${LIB_SUFFIX}")
     elseif (UNIX)
         # Hide symbols not explicitly tagged for export from the shared library
-        target_compile_options(glfw PRIVATE "-fvisibility=hidden")
+        target_compile_options(3rd_glfw PRIVATE "-fvisibility=hidden")
     endif()
 
-    target_compile_definitions(glfw INTERFACE GLFW_DLL)
-    target_link_libraries(glfw PRIVATE ${glfw_LIBRARIES})
+    target_compile_definitions(3rd_glfw INTERFACE GLFW_DLL)
+    target_link_libraries(3rd_glfw PRIVATE ${glfw_LIBRARIES})
 else()
-    target_link_libraries(glfw INTERFACE ${glfw_LIBRARIES})
+    target_link_libraries(3rd_glfw INTERFACE ${glfw_LIBRARIES})
 endif()
 
 if (MSVC)
-    target_compile_definitions(glfw PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_definitions(3rd_glfw PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
 if (GLFW_INSTALL)
-    install(TARGETS glfw
+    install(TARGETS 3rd_glfw
             EXPORT glfwTargets
             RUNTIME DESTINATION "bin"
             ARCHIVE DESTINATION "lib${LIB_SUFFIX}"
@@ -161,6 +161,6 @@ endif()
 
 
 if (MSVC)
-    target_compile_definitions(glfw PRIVATE GLEW_STATIC)
+    target_compile_definitions(3rd_glfw PRIVATE GLEW_STATIC)
 endif()
 

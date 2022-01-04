@@ -78,7 +78,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE GLEW_STATIC)
 #set (OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
-target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} glew glfw imgui core util fileio algo viewer tetgen kd_tree cminpack optimizer_lm)
+target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} 3rd_imgui 3rd_algo 3rd_viewer 3rd_tetgen 3rd_kd_tree 3rd_cminpack 3rd_optimizer_lm)
 
 
 find_package(Boost REQUIRED) # It's "Boost", not "BOOST" or "boost". Case matters.

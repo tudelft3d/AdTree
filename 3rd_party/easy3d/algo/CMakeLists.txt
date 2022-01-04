@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 
-get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+get_filename_component(MODULE_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(PROJECT_NAME 3rd_${MODULE_NAME})
 project(${PROJECT_NAME})
 
 
@@ -19,7 +20,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "3rd_party/easy3d")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_easy3d_INCLUDE_DIR})
 
-target_link_libraries(${PROJECT_NAME} core util)
+target_link_libraries(${PROJECT_NAME} 3rd_core 3rd_util)
 
 if (MSVC)
     target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_DEPRECATE)

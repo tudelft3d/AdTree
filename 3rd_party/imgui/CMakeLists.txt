@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 
-get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+get_filename_component(MODULE_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(PROJECT_NAME 3rd_${MODULE_NAME})
 project(${PROJECT_NAME})
 
 
@@ -28,7 +29,7 @@ set(IMGUI_INCLUDE_DIR  ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${ADTREE_imgui_INCLUDE_DIR} ${ADTREE_glew_INCLUDE_DIR})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE GLEW_STATIC)
-target_link_libraries(${PROJECT_NAME} glew glfw)
+target_link_libraries(${PROJECT_NAME} 3rd_glew 3rd_glfw)
 
 
 if (MSVC)
