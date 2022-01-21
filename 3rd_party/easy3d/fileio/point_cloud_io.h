@@ -54,24 +54,11 @@ namespace easy3d {
 
 
 	namespace io {
-		// three blocks storing points, colors (optional), and normals (optional)
-		bool load_bin(const std::string& file_name, PointCloud* cloud);
-		bool save_bin(const std::string& file_name, const PointCloud* cloud);
-
 		// each line with only point: (x, y, z)
 		bool load_xyz(const std::string& file_name, PointCloud* cloud);
 		bool save_xyz(const std::string& file_name, const PointCloud* cloud);
 		bool load_bxyz(const std::string& file_name, PointCloud* cloud);
 		bool save_bxyz(const std::string& file_name, const PointCloud* cloud);
-
-		bool load_ply(const std::string& file_name, PointCloud* cloud);
-		bool save_ply(const std::string& file_name, const PointCloud* cloud, bool binary = true);
-
-		// Read/Write both las and laz formats. Internally it uses the LASlib
-        // of martin.isenburg@rapidlasso.com, see http://rapidlasso.com
-		bool load_las(const std::string& file_name, PointCloud* cloud);
-		bool save_las(const std::string& file_name, const PointCloud* cloud);
-
 	};
 
 
