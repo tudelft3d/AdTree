@@ -8,8 +8,6 @@ endif ()
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 project(${PROJECT_NAME})
 
-set(default_build_type "Release")
-
 ################################################################################
 
 set (CMAKE_CXX_STANDARD 11)
@@ -29,8 +27,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ### Configuration
 set(ADTREE_ROOT "${CMAKE_CURRENT_LIST_DIR}")
-set(ADTREE_INCLUDE_DIR "${ADTREE_ROOT}")
-set(ADTREE_SOURCE_DIR "${ADTREE_ROOT}")
 set(ADTREE_EXTERNAL "${ADTREE_ROOT}/3rd_party")
 
 set(ADTREE_glew_INCLUDE_DIR "${ADTREE_EXTERNAL}/glew/include")

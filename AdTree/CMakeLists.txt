@@ -59,7 +59,11 @@ if (APPLE)
             MACOSX_BUNDLE_BUNDLE_VERSION "1.0"
             MACOSX_BUNDLE_GUI_IDENTIFIER "liangliang.nan@gmail.com"
             )
-else ()
+elseif (WIN32 OR MSVC)
+	set(${PROJECT_NAME}_RESOURCES ${ADTREE_ROOT}/resources/AdTree.rc)
+    add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_RESOURCES}) # you can add "WIN32" to disable the console window
+    message(STATUS "Creating the wxWidgets viewer with a console window")
+elseif (APPLE)
     add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
 endif ()
 
@@ -74,11 +78,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_lm_INCLUDE_DIR})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE GLEW_STATIC)
 
-
 #set (OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
-target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} 3rd_imgui 3rd_algo 3rd_viewer 3rd_util 3rd_tetgen 3rd_kd_tree 3rd_cminpack 3rd_optimizer_lm)
+target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} 3rd_imgui easy3d_algo easy3d_viewer 3rd_tetgen 3rd_kd_tree 3rd_cminpack 3rd_optimizer_lm)
 
 
 find_package(Boost REQUIRED) # It's "Boost", not "BOOST" or "boost". Case matters.
