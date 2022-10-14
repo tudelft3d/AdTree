@@ -48,7 +48,7 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
     $ cmake -DCMAKE_BUILD_TYPE=Release ..
     $ make
     ```
-  - on Windows with Microsoft Visual Studio:
+  - on Windows with Microsoft Visual Studio, use `x64 Native Tools Command Prompt for VS XXXX` (don't use the x86 one), then
     ```
     $ cd path-to-root-dir-of-AdTree 
     $ mkdir Release
