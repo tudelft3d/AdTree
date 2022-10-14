@@ -42,7 +42,7 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
 - Option 3: Use CMake to generate Makefiles and then build.
   - on Linux or macOS:
     ```
-    $ cd adtree
+    $ cd path-to-root-dir-of-AdTree 
     $ mkdir Release
     $ cd Release
     $ cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -50,11 +50,11 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
     ```
   - on Windows with Microsoft Visual Studio:
     ```
-    $ cd adtree
+    $ cd path-to-root-dir-of-AdTree 
     $ mkdir Release
     $ cd Release
     $ cmake -DCMAKE_BUILD_TYPE=Release ..
-    $ msbuild adtree.sln /p:Configuration=Release
+    $ msbuild AdTree.sln /p:Configuration=Release
     ```
 
 Don't have any experience with C/C++ programming? Have a look at [How to build AdTree step by step](./How_to_build.md).
