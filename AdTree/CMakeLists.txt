@@ -63,7 +63,7 @@ elseif (WIN32 OR MSVC)
 	set(${PROJECT_NAME}_RESOURCES ${ADTREE_ROOT}/resources/AdTree.rc)
     add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_RESOURCES}) # you can add "WIN32" to disable the console window
     message(STATUS "Creating the wxWidgets viewer with a console window")
-elseif (APPLE)
+else ()
     add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
 endif ()
 
