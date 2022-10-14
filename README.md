@@ -5,7 +5,7 @@
 
 
 AdTree implements the tree reconstruction method described in the following [paper](https://3d.bk.tudelft.nl/liangliang/publications/2019/adtree/AdTree_RS-2019.pdf):
-```c++
+```
 Shenglan Du, Roderik Lindenbergh, Hugo Ledoux, Jantien Stoter, and Liangliang Nan.
 AdTree: Accurate, Detailed, and Automatic Modelling of Laser-Scanned Trees.
 Remote Sensing. 2019, 11(18), 2074.
@@ -27,7 +27,7 @@ compatible with the latest version.
 You need [CMake](https://cmake.org/download/) and of course a compiler to build AdTree:
 
 - CMake `>= 3.1`
-- a compiler that supports `>= C++17`
+- a compiler that supports `>= C++11`
 
 AdTree has been tested on macOS (Xcode >= 8), Windows (MSVC >=2015), and Linux (GCC >= 4.8, Clang >= 3.3). Machines 
 nowadays typically provide higher [supports](https://en.cppreference.com/w/cpp/compiler_support), so you should be 
@@ -42,19 +42,19 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
 - Option 3: Use CMake to generate Makefiles and then build.
   - on Linux or macOS:
     ```
-    $ cd adtree
+    $ cd path-to-root-dir-of-AdTree 
     $ mkdir Release
     $ cd Release
     $ cmake -DCMAKE_BUILD_TYPE=Release ..
     $ make
     ```
-  - on Windows with Microsoft Visual Studio:
+  - on Windows with Microsoft Visual Studio, use `x64 Native Tools Command Prompt for VS XXXX` (don't use the x86 one), then
     ```
-    $ cd adtree
+    $ cd path-to-root-dir-of-AdTree 
     $ mkdir Release
     $ cd Release
-    $ cmake -DCMAKE_BUILD_TYPE=Release ..
-    $ msbuild adtree.sln /p:Configuration=Release
+    $ cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+    $ nmake
     ```
 
 Don't have any experience with C/C++ programming? Have a look at [How to build AdTree step by step](./How_to_build.md).
