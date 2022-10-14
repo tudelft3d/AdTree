@@ -53,8 +53,8 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
     $ cd path-to-root-dir-of-AdTree 
     $ mkdir Release
     $ cd Release
-    $ cmake -DCMAKE_BUILD_TYPE=Release ..
-    $ msbuild AdTree.sln /p:Configuration=Release
+    $ cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+    $ nmake
     ```
 
 Don't have any experience with C/C++ programming? Have a look at [How to build AdTree step by step](./How_to_build.md).
