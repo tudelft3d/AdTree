@@ -19,7 +19,7 @@ Prebuilt executables (for **macOS**, **Linux**, and **Windows**) can be download
 [here](https://github.com/tudelft3d/adtree/releases). 
 
 AdTree depends on some third-party libraries and most dependencies are included in the distribution except 
-[Boost](https://www.boost.org/). So you will need to have Boost install first. 
+[Boost](https://www.boost.org/). So you will need to have Boost installed first. 
 
 Note: AdTree uses a stripped earlier version of [Easy3D](https://github.com/LiangliangNan/Easy3D), which is not 
 compatible with the latest version.
@@ -30,7 +30,7 @@ You need [CMake](https://cmake.org/download/) and of course a compiler to build 
 - a compiler that supports `>= C++11`
 
 AdTree has been tested on macOS (Xcode >= 8), Windows (MSVC >=2015), and Linux (GCC >= 4.8, Clang >= 3.3). Machines 
-nowadays typically provide higher [supports](https://en.cppreference.com/w/cpp/compiler_support), so you should be 
+nowadays typically provide higher [support](https://en.cppreference.com/w/cpp/compiler_support), so you should be 
 able to build AdTree on almost all platforms.
 
 There are many options to build AdTree. Choose one of the following (or whatever you are familiar with):
@@ -50,7 +50,7 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
     $ cmake -DCMAKE_BUILD_TYPE=Release ..
     $ make
     ```
-  - on Windows with Microsoft Visual Studio, use `x64 Native Tools Command Prompt for VS XXXX` (don't use the x86 one), then
+  - on Windows with Microsoft Visual Studio, use the `x64 Native Tools Command Prompt for VS XXXX` (don't use the x86 one), then
     ```
     $ cd path-to-root-dir-of-AdTree 
     $ mkdir Release
@@ -63,7 +63,7 @@ Don't have any experience with C/C++ programming? Have a look at [How to build A
 
 After obtaining the executable, AdTree can be run in three modes, which can be selected based 
 on arguments.
-  - GUI mode that provides a user interface with menus. You can double click to run the app or from the command 
+  - GUI mode that provides a user interface with menus. You can double-click to run the app or from the command 
     using `./AdTree`.
 
   - Single processing mode (i.e., processing a single point cloud file) from the command line using
@@ -71,7 +71,7 @@ on arguments.
     ./AdTree <xyz_file_path> <output_directory>
     ```
  - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input and the reconstructed 
-   models will be save in the output directory) from the command line using 
+   models will be saved in the output directory) from the command line using 
     ```
     ./AdTree <xyz_files_directory> <output_directory>
     ```
@@ -92,7 +92,7 @@ Some test tree point clouds are provided in the '[data](./data)' folder.
 
 ---
 ### Citation
-If you use the code/program (or part) of AdTree in a scientific work, please cite our paper:
+If you use the code/program (or part) of AdTree in scientific work, please cite our paper:
 
 ```bibtex
 @article{du2019adtree,
