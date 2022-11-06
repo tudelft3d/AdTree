@@ -55,5 +55,8 @@ add_subdirectory(3rd_party)
 add_subdirectory(AdTree)
 
 ## Resources
-# Copy resources dirs into our shadow build directory
-file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
+# Copy resources dirs into our shadow build directory. For AdTree only the shaders are needed
+if (NOT APPLE)
+        file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders DESTINATION" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources")
+endif ()
+
