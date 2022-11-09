@@ -156,7 +156,11 @@ bool TreeViewer::key_press_event(int key, int modifiers)
 
 
 std::string TreeViewer::usage() const {
-    return Viewer::usage() + std::string(
+    return 				
+		"-----------------------------------------------\n" + 
+		Viewer::usage() + std::string(
+				"-----------------------------------------------\n"
+				"AdTree shortcuts:                              \n"
                 "  Shift + P:       Show/Hide point cloud       \n"
                 "  Shift + G:       Show/Hide skeleton          \n"
                 "  Shift + B:       Show/Hide branches          \n"
