@@ -91,6 +91,19 @@ Some test tree point clouds are provided in the '[data](./data)' folder.
  - the tree has an upright orientation (i.e., with Z-axis pointing up).
 
 ---
+
+### About the output
+AdTree outputs 3D models of the reconstructed branches (and also leaves) as triangle meshes 
+in the [OBJ format](https://en.wikipedia.org/wiki/Wavefront_.obj_file).
+
+It also supports to output the reconstructed skeletons as generalized cylinders (i.e., the two endpoints of an edge have
+different radii) in the [PLY format](https://en.wikipedia.org/wiki/PLY_(file_format)). In this format, each branch is 
+represented by a sequence of generalized cylinders, and each vertex is associated with a `radius' property. Please note 
+that most tools (like CloudCompare and MeshLab) do not support this format. You can use [Mapple](https://github.com/LiangliangNan/Easy3D/releases/tag/v2.5.2) (or one of the example viewers in [Easy3D](https://github.com/LiangliangNan/Easy3D))
+to visualize the exported skeletons (see an example visualization [here](https://github.com/tudelft3d/AdTree/issues/16#issuecomment-1410001785)).
+
+---
+
 ### Citation
 If you use the code/program (or part) of AdTree in scientific work, please cite our paper:
 
