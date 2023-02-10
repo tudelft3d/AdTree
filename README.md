@@ -63,18 +63,26 @@ Don't have any experience with C/C++ programming? Have a look at [How to build A
 
 After obtaining the executable, AdTree can be run in three modes, which can be selected based 
 on arguments.
-  - GUI mode that provides a user interface with menus. You can double-click to run the app or from the command 
-    using `./AdTree`.
+  - GUI mode. It provides a user interface with menus. You can double-click the app or run it from the commandline
+    ```
+    ./AdTree
+    ```
+    
+  - Commandline single processing mode (i.e., processing a single point cloud file).
+    ```
+    ./AdTree  <xyz_file_path>  <output_directory>  [-s|-skeleton]
+    ```
+    - `<xyz_file_path>`: a mandatory argument specifying the path to the input point cloud file
+    - `<output_directory>`: a mandatory argument specifying where to save the results
+    - `[-s]` or `[-skeleton]`: also export the skeletons (omit this argument it if you don't need skeletons)
 
-  - Single processing mode (i.e., processing a single point cloud file) from the command line using
+  - Commandline batch processing mode (i.e., all *.xyz files in an input directory will be processed).
     ```
-    ./AdTree <xyz_file_path> <output_directory>
+    ./AdTree  <xyz_files_directory>  <output_directory>  [-s|-skeleton]
     ```
- - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input and the reconstructed 
-   models will be saved in the output directory) from the command line using 
-    ```
-    ./AdTree <xyz_files_directory> <output_directory>
-    ```
+     - `<xyz_files_directory>`: a mandatory argument specifying the directory containing the input point cloud files
+     - `<output_directory>`: a mandatory argument specifying where to save the results
+     - `[-s]` or `[-skeleton]`: also export the skeletons (omit this argument it if you don't need skeletons)
 
 <p align="center"> 
      <img src="./resources/images/ui.jpg" width="600"> 

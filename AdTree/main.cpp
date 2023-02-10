@@ -44,8 +44,56 @@
 
 using namespace easy3d;
 
+// save the smoothed skeleton into a PLY file (where each vertex has a radius)
+void save_skeleton(Skeleton* skeleton, PointCloud* cloud, const std::string& file_name) {
+	const ::Graph& sgraph = skeleton->get_smoothed_skeleton();
+	if (boost::num_edges(sgraph) == 0) {
+		std::cerr << "failed to save skeleton (no edge exists)" << std::endl;
+		return;
+	}
+
+	// convert the boost graph to Graph (avoid modifying easy3d's GraphIO, or writing IO for boost graph)
+
+	std::unordered_map<SGraphVertexDescriptor, easy3d::Graph::Vertex>  vvmap;
+	easy3d::Graph g;
+
+	auto vertexRadius = g.add_vertex_property<float>("v:radius");
+	auto vts = boost::vertices(sgraph);
+	for (SGraphVertexIterator iter = vts.first; iter != vts.second; ++iter) {
+		SGraphVertexDescriptor vd = *iter;
+		if (boost::degree(vd, sgraph) != 0) { // ignore isolated vertices
+			const vec3& vp = sgraph[vd].cVert;
+			auto v = g.add_vertex(vp);
+			vertexRadius[v] = sgraph[vd].radius;
+			vvmap[vd] = v;
+		}
+	}
+
+	auto egs = boost::edges(sgraph);
+	for (SGraphEdgeIterator iter = egs.first; iter != egs.second; ++iter) {
+		SGraphEdgeDescriptor ed = *iter;    // the edge descriptor
+		SGraphEdgeProp ep = sgraph[ed];   // the edge property
+
+		SGraphVertexDescriptor s = boost::source(*iter, sgraph);
+		SGraphVertexDescriptor t = boost::target(*iter, sgraph);
+		g.add_edge(vvmap[s], vvmap[t]);
+	}
+
+	auto offset = cloud->get_model_property<dvec3>("translation");
+	if (offset) {
+		auto prop = g.model_property<dvec3>("translation");
+		prop[0] = offset[0];
+	}
+
+	if (GraphIO::save(file_name, &g))
+        std::cout << "model of skeletons saved to: " << file_name << std::endl;
+    else
+		std::cerr << "failed to save the model of skeletons into file" << std::endl;
+}
+
+
 // returns the number of processed input files.
-int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::string& output_folder) {
+int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::string& output_folder, bool export_skeleton) {
     int count(0);
     for (std::size_t i=0; i<point_cloud_files.size(); ++i) {
         const std::string& xyz_file = point_cloud_files[i];
@@ -111,7 +159,12 @@ int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::st
             ++count;
         }
         else
-            std::cerr << "failed in saving the model of branches" << std::endl;
+            std::cerr << "failed to save the model of branches" << std::endl;
+
+        if (export_skeleton) {
+            const std::string& skeleton_file = output_folder + "/" + file_system::base_name(cloud->name()) + "_skeleton.ply";
+            save_skeleton(skeleton, cloud, skeleton_file);
+        }
 
         delete cloud;
         delete mesh;
@@ -123,7 +176,7 @@ int batch_reconstruct(std::vector<std::string>& point_cloud_files, const std::st
 
 
 int main(int argc, char *argv[]) {
-//    argc = 3;
+//    argc = 2;
 //    argv[1] = "/Users/lnan/Projects/adtree/data";
 //    argv[2] = "/Users/lnan/Projects/adtree/data-results";
 
@@ -131,7 +184,22 @@ int main(int argc, char *argv[]) {
         TreeViewer viewer;
         viewer.run();
         return EXIT_SUCCESS;
-    } else if (argc == 3) {
+    } else if (argc >= 3) {
+        bool export_skeleton = false;
+        for (int i = 0; i < argc; ++i) {
+            if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "-skeleton") == 0) {
+                export_skeleton = true;
+                break;
+            }
+        }
+
+        if (export_skeleton) {
+            std::cout << "You have requested to save the reconstructed tree skeleton(s) in PLY format into the output directory." << std::endl;
+            std::cout << "The skeleton file(s) can be visualized using Easy3D: https://github.com/LiangliangNan/Easy3D" << std::endl;
+        }
+        else
+            std::cout << "Tree skeleton(s) will not be saved (append '-s' or '-skeleton' in commandline to enable it)" << std::endl;
+
         std::string first_arg(argv[1]);
         std::string second_arg(argv[2]);
         if (file_system::is_file(second_arg))
@@ -140,7 +208,7 @@ int main(int argc, char *argv[]) {
             std::string output_dir = second_arg;
             if (file_system::is_file(first_arg)) {
                 std::vector<std::string> cloud_files = {first_arg};
-                return batch_reconstruct(cloud_files, output_dir) > 0;
+                return batch_reconstruct(cloud_files, output_dir, export_skeleton) > 0;
             } else if (file_system::is_directory(first_arg)) {
                 std::vector<std::string> entries;
                 file_system::get_directory_entries(first_arg, entries, false);
@@ -149,7 +217,7 @@ int main(int argc, char *argv[]) {
                     if (file_name.size() > 3 && file_name.substr(file_name.size() - 3) == "xyz")
                         cloud_files.push_back(first_arg + "/" + file_name);
                 }
-                return batch_reconstruct(cloud_files, output_dir) > 0;
+                return batch_reconstruct(cloud_files, output_dir, export_skeleton) > 0;
             } else
                 std::cerr
                         << "WARNING: unknown first argument (expecting either a point cloud file in *.xyz format or a\n"
@@ -158,13 +226,18 @@ int main(int argc, char *argv[]) {
     }
 
     std::cerr << "Usage: AdTree can be run in three modes, which can be selected based on arguments:" << std::endl;
-    std::cerr << "  - GUI mode." << std::endl;
-    std::cerr << "         Command: ./AdTree" << std::endl;
-    std::cerr << "  - Single processing mode (i.e., processing a single point cloud file)." << std::endl;
-    std::cerr << "         Command: ./AdTree <xyz_file_path> <output_directory>" << std::endl;
-    std::cerr << "  - Batch processing mode (i.e., all *.xyz files in the input directory will be treated as input \n";
-    std::cerr << "    for reconstruction and the reconstructed models will be save in the output directory).\n";
-    std::cerr << "         Command: ./AdTree <xyz_files_directory> <output_directory>" << std::endl;
+    std::cerr << "  1) GUI mode." << std::endl;
+    std::cerr << "         Command: ./AdTree" << std::endl << std::endl;
+    std::cerr << "  2) Commandline single processing mode (i.e., processing a single point cloud file)." << std::endl;
+    std::cerr << "         Command: ./AdTree  <xyz_file_path>  <output_directory>  [-s|-skeleton]" << std::endl;
+    std::cerr << "     - <xyz_file_path>: a mandatory argument specifying the path to the input point cloud file" << std::endl;
+    std::cerr << "     - <output_directory>: a mandatory argument specifying where to save the results" << std::endl;
+    std::cerr << "     - [-s] or [-skeleton]: also export the skeletons (omit this argument it if you don't need skeletons)" << std::endl << std::endl;
+    std::cerr << "  3) Commandline batch processing mode (i.e., all *.xyz files in an input directory will be processed)." << std::endl;
+    std::cerr << "         Command: ./AdTree <xyz_files_directory> <output_directory> [-s|-skeleton]" << std::endl;
+    std::cerr << "     - <xyz_files_directory>: a mandatory argument specifying the directory containing the input point cloud files" << std::endl;
+    std::cerr << "     - <output_directory>: a mandatory argument specifying where to save the results" << std::endl;
+    std::cerr << "     - [-s] or [-skeleton]: also export the skeletons (omit this argument it if you don't need skeletons)" << std::endl << std::endl;
 
     return EXIT_FAILURE;
 }

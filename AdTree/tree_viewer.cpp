@@ -251,7 +251,7 @@ void TreeViewer::export_skeleton() const {
         auto e = g.add_edge(vvmap[s], vvmap[t]);
         edgeRadius[e] = skeleton[*iter].nRadius;
     }
-#else // save the smoothed skeleton, for which each very has a radius.
+#else // save the smoothed skeleton into a PLY file (where each vertex has a radius)
     const ::Graph& skeleton = skeleton_->get_smoothed_skeleton();
         if (boost::num_edges(skeleton) == 0) {
         std::cerr << "skeleton has 0 edges" << std::endl;
