@@ -1066,6 +1066,56 @@ namespace easy3d {
                 if (colors)
                     surface->update_color_buffer(vertex_colors);
                 surface->release_index_buffer();
+
+#if 0   // Code example: add each faces a color property and use it for rendering
+                auto model = mesh;
+                auto colors = model->add_face_property<vec3>("f:color"); // add a face property to the surface model
+                for (auto f : model->faces())
+                    colors[f] = easy3d::random_color(); // assign a random color to each face
+                auto surface = model->triangles_drawable("surface");
+                if (!surface) {
+                    std::cerr << "error: drawable 'surface' does not exist. You have to add the model to the viewer using 'add_model(model)'" << std::endl;
+                    return false;
+                }
+
+                auto points = model->get_vertex_property<vec3>("v:point");
+
+                std::vector<vec3> vertices, vertex_normals, vertex_colors;
+                for (auto f : model->faces()) {
+                    const vec3& c = colors[f];
+                    // we assume convex polygonal faces and we render in triangles
+                    SurfaceMesh::Halfedge start = model->halfedge(f);
+                    SurfaceMesh::Halfedge cur = model->next_halfedge(model->next_halfedge(start));
+                    SurfaceMesh::Vertex va = model->to_vertex(start);
+                    const vec3& pa = points[va];
+                    while (cur != start) {
+                        SurfaceMesh::Vertex vb = model->from_vertex(cur);
+                        SurfaceMesh::Vertex vc = model->to_vertex(cur);
+                        const vec3& pb = points[vb];
+                        const vec3& pc = points[vc];
+                        vertices.push_back(pa);
+                        vertices.push_back(pb);
+                        vertices.push_back(pc);
+                        const vec3& n = geom::triangle_normal(pa, pb, pc);
+                        vertex_normals.insert(vertex_normals.end(), 3, n);
+                        if (colors) {
+                            vertex_colors.push_back(c);
+                            vertex_colors.push_back(c);
+                            vertex_colors.push_back(c);
+                        }
+                        cur = model->next_halfedge(cur);
+                    }
+                }
+                surface->update_vertex_buffer(vertices);
+                surface->update_normal_buffer(vertex_normals);
+                if (colors)
+                    surface->update_color_buffer(vertex_colors);
+                surface->release_index_buffer();
+
+                surface->set_per_vertex_color(true);
+                surface->set_phong_shading(false); // smooth shading or not?
+
+#endif
             }
 
             surface->set_default_color(easy3d::vec3(1.0f, 0.67f, 0.5f));
