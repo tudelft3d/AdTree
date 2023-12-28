@@ -95,7 +95,15 @@ namespace easy3d {
 		ImGuiIO& io = ImGui::GetIO();
 		io.Fonts->Clear();
         io.Fonts->AddFontFromMemoryCompressedTTF(droid_sans_compressed_data, droid_sans_compressed_size, static_cast<float>(font_size * dpi_scaling()));
+
+        // If you want to show other languages, e.g., Chinese, you first need to use a TTF font file that support Chinese. You can replace the above line by:
+        // io.Fonts->AddFontFromFileTTF("/Users/lnan/Documents/Projects/Easy3D/resources/fonts/cn_Mao.ttf", static_cast<float>(font_size * dpi_scaling()), nullptr, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+        // Then input the Chinese characters like: (const char*)u8"你好". You can define a macro to make it simpler, e.g.,
+        // #define _S(_LITERAL)    (const char*)u8##_LITERAL
+        // ImGui::Text(_S("你好"));
+
         io.FontGlobalScale = static_cast<float>(1.0 / pixel_ratio());
+
         ImGui_ImplOpenGL3_DestroyDeviceObjects();
 	}
 
