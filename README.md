@@ -41,7 +41,7 @@ of AdTree. Then you should have obtained a usable project and just build. I reco
  
 - Option 2: Use CMake to generate project files for your IDE. Then load the project to your IDE and build. For Windows users: your IDE must be set for `x64`.
 
-- Option 3: Use CMake to generate Makefiles and then build （purely command line).
+- Option 3: Use CMake to generate Makefiles and then build（purely command line).
   - on Linux or macOS:
     ```
     $ cd path-to-root-dir-of-AdTree 
