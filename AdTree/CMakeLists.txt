@@ -80,12 +80,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_kd_tree_INCLUDE_DIR}
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_lm_INCLUDE_DIR})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE GLEW_STATIC)
-
-#set (OpenGL_GL_PREFERENCE GLVND)
-find_package(OpenGL REQUIRED)
-message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
-target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} 3rd_imgui easy3d_algo easy3d_viewer 3rd_tetgen 3rd_kd_tree 3rd_cminpack 3rd_optimizer_lm)
-
+target_link_libraries(${PROJECT_NAME} PRIVATE 3rd_imgui easy3d_algo easy3d_viewer 3rd_tetgen 3rd_kd_tree 3rd_cminpack 3rd_optimizer_lm)
 
 find_package(Boost REQUIRED) # It's "Boost", not "BOOST" or "boost". Case matters.
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})

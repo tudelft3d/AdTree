@@ -80,12 +80,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_easy3d_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_glew_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_glfw_INCLUDE_DIR})
 
-set (OpenGL_GL_PREFERENCE GLVND)
-find_package(OpenGL REQUIRED)
-message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
-target_compile_definitions(${PROJECT_NAME} PRIVATE GLEW_STATIC)
-target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} 3rd_glew 3rd_glfw easy3d_core easy3d_util easy3d_fileio 3rd_tinyfiledialogs)
-
+target_link_libraries(${PROJECT_NAME} PUBLIC 3rd_glew 3rd_glfw easy3d_core easy3d_util easy3d_fileio 3rd_tinyfiledialogs)
 
 if (MSVC)
     target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_DEPRECATE)
