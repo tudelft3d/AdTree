@@ -31,10 +31,12 @@ set(GLEW_VERSION ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.$
 
 if(WIN32 OR MSVC OR APPLE)
     find_package(OpenGL COMPONENTS OpenGL REQUIRED)
+    message(STATUS "OpenGL library: ${OPENGL_gl_LIBRARY}")
     set(GLEW_LIBRARIES ${OPENGL_gl_LIBRARY})
 else() # == if(UNIX AND NOT APPLE)
     set(OpenGL_GL_PREFERENCE GLVND)
     find_package(OpenGL COMPONENTS OpenGL GLX REQUIRED)
+    message(STATUS "OpenGL libraries: ${OPENGL_opengl_LIBRARY} ${OPENGL_glx_LIBRARY}")
     set(GLEW_LIBRARIES ${OPENGL_opengl_LIBRARY} ${OPENGL_glx_LIBRARY})
 endif()
 
