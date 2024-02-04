@@ -29,16 +29,18 @@ file(STRINGS ${GLEW_DIR}/config/version _VERSION_PATCH_STRING REGEX "GLEW_MICRO[
 string(REGEX REPLACE "GLEW_MICRO[ ]*=[ ]*([0-9]+)" "\\1" CPACK_PACKAGE_VERSION_PATCH ${_VERSION_PATCH_STRING})
 set(GLEW_VERSION ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH})
 
-if(WIN32 OR MSVC OR APPLE)
-    find_package(OpenGL COMPONENTS OpenGL REQUIRED)
-    message(STATUS "OpenGL library: ${OPENGL_gl_LIBRARY}")
+set(OpenGL_GL_PREFERENCE GLVND)
+find_package(OpenGL REQUIRED)
+# prefer GLVND
+if (OPENGL_opengl_LIBRARY)
+    set(GLEW_LIBRARIES ${OPENGL_opengl_LIBRARY})
+else ()
     set(GLEW_LIBRARIES ${OPENGL_gl_LIBRARY})
-else() # == if(UNIX AND NOT APPLE)
-    set(OpenGL_GL_PREFERENCE GLVND)
-    find_package(OpenGL COMPONENTS OpenGL GLX REQUIRED)
-    message(STATUS "OpenGL libraries: ${OPENGL_opengl_LIBRARY} ${OPENGL_glx_LIBRARY}")
-    set(GLEW_LIBRARIES ${OPENGL_opengl_LIBRARY} ${OPENGL_glx_LIBRARY})
-endif()
+endif ()
+if (OPENGL_glx_LIBRARY)
+    list(APPEND GLEW_LIBRARIES ${OPENGL_glx_LIBRARY})
+endif ()
+message(STATUS "OpenGL libraries: ${GLEW_LIBRARIES}")
 
 # cmake<3.10 doesn't detect EGL/GLX
 if (CMAKE_VERSION VERSION_LESS 3.10)
