@@ -1009,8 +1009,8 @@ void Skeleton::fit_trunk()
     //Cylinder currentC = Cylinder(pSource, pTarget, simplified_skeleton_[trunkE].nRadius);
 
 	//initialize the mean, the point cloud matrix
-	Vector3D pTop(0.0, 0.0, -DBL_MAX);
-	Vector3D pBottom(0.0, 0.0, DBL_MAX);
+	Vector3D pTop(0.0, 0.0, -FLT_MAX);
+	Vector3D pBottom(0.0, 0.0, FLT_MAX);
 
 	PrincipalAxes<3, double> pca;
 	pca.begin();

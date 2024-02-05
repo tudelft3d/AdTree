@@ -67,11 +67,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "3rd_party")
 
 if (MSVC)
     # add options from visual studio project
-    target_compile_definitions(${PROJECT_NAME} PRIVATE "GLEW_STATIC;VC_EXTRALEAN")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE VC_EXTRALEAN)
     # kill security checks which are dependent on stdlib
     target_compile_options(${PROJECT_NAME} PRIVATE -GS-)
 endif ()
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC GLEW_NO_GLU)
+target_compile_definitions(${PROJECT_NAME} PUBLIC GLEW_NO_GLU GLEW_STATIC)
 target_include_directories(${PROJECT_NAME} PRIVATE ${GLEW_DIR}/include ${X11_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${GLEW_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${GLEW_LIBRARIES})
