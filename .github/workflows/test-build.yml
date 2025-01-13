@@ -11,11 +11,12 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: "Build on ${{ matrix.platform }}"
+    name: "Build on ${{ matrix.platform }} - ${{ matrix.build_type }}"
     strategy:
       fail-fast: false
       matrix:
         platform: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: [Debug, Release]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -28,9 +29,9 @@ jobs:
         run: |
           sudo apt-get update || true
           sudo apt-get install -y build-essential libglu1-mesa-dev \
-              mesa-common-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+              mesa-common-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libboost-all-dev
           mkdir -p build && cd build
-          cmake -DCMAKE_BUILD_TYPE=Release ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
           make
 
       # Install dependencies and build on macOS
@@ -38,9 +39,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew update || true
-          brew install cmake
+          brew install cmake boost
           mkdir -p build && cd build
-          cmake -DCMAKE_BUILD_TYPE=Release ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
           make
 
       # Set up environment and build on Windows
@@ -48,7 +49,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: |
+          choco install boost cmake --installargs '"ADD_CMAKE_TO_PATH=System"'
           mkdir build
           cd build
-          cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release ..
-          cmake --build . --config Release
+          cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
+          cmake --build . --config ${{ matrix.build_type }}
