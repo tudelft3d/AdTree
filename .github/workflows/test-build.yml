@@ -11,75 +11,44 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: "Build on ${{ matrix.platform }} with ${{ matrix.compiler }}"
+    name: "Build on ${{ matrix.platform }}"
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest, ubuntu-latest, macos-latest]
-        compiler: [gcc, clang, msvc]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
       # Checkout the code
       - uses: actions/checkout@v3
 
-      # Install dependencies for Ubuntu
-      - name: Install Dependencies (Linux)
+      # Install dependencies and build on Ubuntu
+      - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update || true
-          sudo apt-get install -y \
-              build-essential \
-              ${{ matrix.compiler }} \
-              libglu1-mesa-dev mesa-common-dev \
-              libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libboost-all-dev
+          sudo apt-get install -y build-essential libglu1-mesa-dev \
+              mesa-common-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+          mkdir -p build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          make
 
-      # Install dependencies for macOS
-      - name: Install Dependencies (macOS)
+      # Install dependencies and build on macOS
+      - name: Build on macOS
         if: runner.os == 'macOS'
         run: |
           brew update || true
-          brew install cmake boost
-
-      # Set up Miniconda on Windows
-      - name: Set up Conda (Windows)
-        if: runner.os == 'Windows'
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          architecture: x64
-          auto-activate-base: true
-          channels: conda-forge,defaults
-
-      # Install dependencies for Windows using Conda
-      - name: Install Dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          conda install -y ninja boost
-
-      # Configure the project
-      - name: Configure (Linux & macOS)
-        if: runner.os != 'Windows'
-        run: |
+          brew install cmake
           mkdir -p build && cd build
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_COMPILER=$([[ ${{ matrix.platform }} == "ubuntu-latest" ]] && echo ${{ matrix.compiler }} || echo "clang++")
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          make
 
-      - name: Configure (Windows)
+      # Set up environment and build on Windows
+      - name: Build on Windows
         if: runner.os == 'Windows'
+        shell: cmd
         run: |
-          mkdir -p build && cd build
-          cmake .. \
-            -G "Visual Studio 17 2022" \
-            -A x64 \
-            -DCMAKE_BUILD_TYPE=Release
-
-      # Build the project
-      - name: Build (Linux & macOS)
-        if: runner.os != 'Windows'
-        run: |
-          cmake --build build -- -j$(nproc)
-
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
-        run: cmake --build build --config Release
+          mkdir build
+          cd build
+          cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release ..
+          cmake --build . --config Release
