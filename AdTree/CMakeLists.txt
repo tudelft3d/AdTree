@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 project(${PROJECT_NAME})
@@ -82,6 +82,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${ADTREE_lm_INCLUDE_DIR})
 target_compile_definitions(${PROJECT_NAME} PRIVATE GLEW_STATIC)
 target_link_libraries(${PROJECT_NAME} PRIVATE easy3d_algo easy3d_viewer 3rd_imgui 3rd_tetgen 3rd_kd_tree 3rd_cminpack 3rd_optimizer_lm)
 
+# Check if CMP0167 is available (CMake >= 3.28)
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)  # Use config package instead of FindBoost.cmake
+endif()
+# Try to find Boost graph (works with both config and module-based approaches)
 find_package(Boost REQUIRED) # It's "Boost", not "BOOST" or "boost". Case matters.
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${Boost_headers_DIR})
