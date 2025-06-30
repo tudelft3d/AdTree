@@ -115,9 +115,10 @@ SurfaceMesh* TreeViewer::leaves() const {
 bool TreeViewer::key_press_event(int key, int modifiers)
 {
     if (key == GLFW_KEY_P && modifiers == GLFW_MOD_SHIFT) {
-        if (!cloud())
-            return false;
-        cloud()->set_visible(!cloud()->is_visible());
+        if (cloud()) {
+            PointsDrawable* vertices = cloud()->points_drawable("vertices");
+            vertices->set_visible(!vertices->is_visible());
+        }
 		return true;
 	}
 
@@ -127,8 +128,10 @@ bool TreeViewer::key_press_event(int key, int modifiers)
 
 		//shift the visibility of the graph drawable
         LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
-        if (!graph_drawable)
+        if (!graph_drawable) {
             create_skeleton_drawable(ST_SMOOTHED);
+            graph_drawable = cloud()->lines_drawable("graph");
+        }
         if (graph_drawable)
             graph_drawable->set_visible(!graph_drawable->is_visible());
 		return true;
@@ -450,8 +453,10 @@ bool TreeViewer::create_skeleton_drawable(SkeletonType type)
 
 	//initialize the line drawable object;
     LinesDrawable* graph_drawable = cloud()->lines_drawable("graph");
-	if (!graph_drawable)
-        graph_drawable = cloud()->add_lines_drawable("graph");
+	if (!graph_drawable) {
+	    graph_drawable = cloud()->add_lines_drawable("graph");
+	    graph_drawable->set_visible(false); // not visible by default
+	}
 	graph_drawable->update_vertex_buffer(graph_points);
 	graph_drawable->set_per_vertex_color(false);
 	graph_drawable->set_default_color(vec3(0.0f, 0.0f, 0.0f));
@@ -514,7 +519,8 @@ bool TreeViewer::reconstruct_skeleton() {
         if (!branches())
             add_model(mesh);
 
-        cloud()->set_visible(false);
+        PointsDrawable* vertices = cloud()->points_drawable("vertices");
+        vertices->set_visible(false);
         return true;
     }
 
