@@ -534,25 +534,23 @@ bool TreeViewer::add_leaves() {
         return false;
     }
 
-    SurfaceMesh* mesh = leaves();
-    if (mesh)
-        mesh->clear();
-    else {
-        mesh = new SurfaceMesh;
-        mesh->set_name(file_system::base_name(cloud()->name()) + "_leaves.obj");
-    }
+    SurfaceMesh* leaves_model = leaves();
+    if (leaves_model)
+        delete_model(leaves_model);
 
-    if (skeleton_->reconstruct_leaves(mesh)) {
+    leaves_model = new SurfaceMesh;
+    leaves_model->set_name(file_system::base_name(cloud()->name()) + "_leaves.obj");
+    if (skeleton_->reconstruct_leaves(leaves_model)) {
         if (!leaves())
-            add_model(mesh);
+            add_model(leaves_model);
 
         auto offset = cloud()->get_model_property<dvec3>("translation");
         if (offset) {
-            auto prop = mesh->model_property<dvec3>("translation");
+            auto prop = leaves_model->model_property<dvec3>("translation");
             prop[0] = offset[0];
         }
 
-        TrianglesDrawable* leaves_drawable = mesh->triangles_drawable("surface");
+        TrianglesDrawable* leaves_drawable = leaves_model->triangles_drawable("surface");
         if (leaves_drawable) {
             leaves_drawable->set_per_vertex_color(false);
             leaves_drawable->set_default_color(vec3(0.50f, 0.83f, 0.20f));
